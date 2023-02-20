@@ -1,0 +1,135 @@
+use axum::{http::HeaderMap, Json};
+use axum_extra::extract::WithRejection;
+use sea_orm::sea_query::Expr;
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, Set};
+use serde::{Deserialize, Serialize};
+use validator::Validate;
+
+use crate::util::hash::Algo;
+use crate::{
+    config::db,
+    entity::{account, prelude::*},
+    result::{
+        rejection::IRejection,
+        response::{ApiData, ApiErr, Result},
+    },
+    util::{
+        self,
+        auth::{self, Identity},
+        hash::Hash,
+    },
+};
+
+#[derive(Debug, Validate, Deserialize, Serialize)]
+pub struct ParamsLogin {
+    #[validate(length(min = 1, message = "用户名必填"))]
+    pub username: String,
+    #[validate(length(min = 1, message = "密码必填"))]
+    pub password: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct RespLogin {
+    pub name: String,
+    pub role: i8,
+    pub auth_token: String,
+}
+
+pub async fn login(
+    WithRejection(Json(params), _): IRejection<Json<ParamsLogin>>,
+) -> Result<ApiData<RespLogin>> {
+    if let Err(err) = params.validate() {
+        return Err(ApiErr::ErrParams(Some(err.to_string())));
+    }
+
+    let ret = Account::find()
+        .filter(account::Column::Username.eq(params.username))
+        .one(db::get())
+        .await;
+
+    let record = match ret {
+        Err(err) => {
+            tracing::error!(error = ?err, "err find account");
+            return Err(ApiErr::ErrSystem(None));
+        }
+        Ok(v) => v,
+    };
+
+    let model = match record {
+        None => return Err(ApiErr::ErrAuth(Some("账号不存在".to_string()))),
+        Some(v) => v,
+    };
+
+    let pass = format!("{}{}", params.password, model.salt);
+
+    if Hash(Algo::MD5).from_string(pass) != model.password {
+        return Err(ApiErr::ErrAuth(Some("密码错误".to_string())));
+    }
+
+    let now = chrono::Local::now().timestamp();
+    let login_token =
+        Hash(Algo::MD5).from_string(format!("auth-{}-{}-{}", model.id, now, util::nonce(16)));
+
+    let identity = Identity::new(model.id, model.role, login_token.clone());
+    let auth_token = match identity.encrypt() {
+        Err(err) => {
+            tracing::error!(error = ?err, "err identity encrypt");
+            return Err(ApiErr::ErrSystem(None));
+        }
+        Ok(v) => v,
+    };
+
+    let am = account::ActiveModel {
+        login_at: Set(now),
+        login_token: Set(login_token),
+        updated_at: Set(now),
+        ..Default::default()
+    };
+
+    let ret_update = Account::update_many()
+        .filter(account::Column::Id.eq(model.id))
+        .set(am)
+        .exec(db::get())
+        .await;
+
+    if let Err(err) = ret_update {
+        tracing::error!(error = ?err, "err update account");
+        return Err(ApiErr::ErrSystem(None));
+    }
+
+    let resp = RespLogin {
+        name: model.realname,
+        role: model.role,
+        auth_token,
+    };
+
+    Ok(ApiData(Some(resp)))
+}
+
+pub async fn logout(headers: HeaderMap) -> Result<ApiData<()>> {
+    let identity = match auth::check(headers, None).await {
+        Err(err) => return Err(ApiErr::ErrSystem(Some(err.to_string()))),
+        Ok(v) => v,
+    };
+
+    if identity.id() == 0 {
+        return Ok(ApiData(None));
+    }
+
+    let ret = Account::update_many()
+        .filter(account::Column::Id.eq(identity.id()))
+        .col_expr(account::Column::LoginToken, Expr::value(""))
+        .col_expr(
+            account::Column::CreatedAt,
+            Expr::value(chrono::Local::now().timestamp()),
+        )
+        .exec(db::get())
+        .await;
+
+    if let Err(err) = ret {
+        tracing::error!(error = ?err, "err update account");
+        return Err(ApiErr::ErrSystem(None));
+    }
+
+    Ok(ApiData(None))
+}
