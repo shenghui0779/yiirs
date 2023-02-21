@@ -1,5 +1,6 @@
 use chrono::Local;
 use std::env;
+use tracing::Level;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::fmt::format::Writer;
 use tracing_subscriber::{self, fmt::time::FormatTime};
@@ -22,6 +23,7 @@ pub async fn init() -> WorkerGuard {
         if v == "dev" {
             let (non_blocking, guard) = tracing_appender::non_blocking(std::io::stdout());
             tracing_subscriber::fmt()
+                .with_max_level(Level::DEBUG)
                 .with_file(true)
                 .with_line_number(true)
                 .with_timer(LocalTimer)
@@ -47,6 +49,7 @@ pub async fn init() -> WorkerGuard {
 
     // 初始化并设置日志格式(定制和筛选日志)
     tracing_subscriber::fmt()
+        .with_max_level(Level::DEBUG)
         .with_file(true)
         .with_line_number(true) // 写入标准输出
         .with_ansi(false) // 如果日志是写入文件，应将ansi的颜色输出功能关掉
