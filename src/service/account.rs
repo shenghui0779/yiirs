@@ -5,7 +5,6 @@ use axum::{
     Extension, Json,
 };
 use axum_extra::extract::WithRejection;
-use chrono::prelude::*;
 use sea_orm::{
     ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
 };
@@ -20,9 +19,9 @@ use crate::{
         response::{ApiErr, ApiOK, Result},
     },
     util::{
-        self,
         auth::{Identity, Role},
         hash::{Algo, Hash},
+        helper::{self, TimeFmt},
     },
 };
 
@@ -64,7 +63,7 @@ pub async fn create(
         }
     }
 
-    let salt = util::nonce(16);
+    let salt = helper::nonce(16);
     let pass = format!("{}{}", params.password, salt);
 
     let now = chrono::Local::now().timestamp();
@@ -119,25 +118,15 @@ pub async fn info(
         },
     };
 
-    let mut resp = RespInfo {
+    let resp = RespInfo {
         id: model.id,
         username: model.username,
         realname: model.realname,
         login_at: model.login_at,
-        login_at_str: String::from(""),
+        login_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_date(model.login_at),
         created_at: model.created_at,
-        created_at_str: String::from(""),
+        created_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_date(model.created_at),
     };
-
-    if let Some(v) = Local.timestamp_opt(model.created_at, 0).single() {
-        resp.created_at_str = v.format("%Y-%m-%d %H:%M:%S").to_string()
-    }
-
-    if model.login_at > 0 {
-        if let Some(v) = Local.timestamp_opt(model.login_at, 0).single() {
-            resp.login_at_str = v.format("%Y-%m-%d %H:%M:%S").to_string()
-        }
-    }
 
     Ok(ApiOK(Some(resp)))
 }
@@ -164,7 +153,7 @@ pub async fn list(
         }
     }
 
-    let (offset, limit) = util::query_page(&query);
+    let (offset, limit) = helper::query_page(&query);
 
     let mut total: i64 = 0;
 
@@ -206,25 +195,15 @@ pub async fn list(
     };
 
     for model in models {
-        let mut info = RespInfo {
+        let info = RespInfo {
             id: model.id,
             username: model.username,
             realname: model.realname,
             login_at: model.login_at,
-            login_at_str: String::from(""),
+            login_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_date(model.login_at),
             created_at: model.created_at,
-            created_at_str: String::from(""),
+            created_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_date(model.created_at),
         };
-
-        if let Some(v) = Local.timestamp_opt(model.created_at, 0).single() {
-            info.created_at_str = v.format("%Y-%m-%d %H:%M:%S").to_string()
-        }
-
-        if model.login_at > 0 {
-            if let Some(v) = Local.timestamp_opt(model.login_at, 0).single() {
-                info.login_at_str = v.format("%Y-%m-%d %H:%M:%S").to_string()
-            }
-        }
 
         resp.list.push(info);
     }

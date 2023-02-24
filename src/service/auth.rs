@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::util::hash::Algo;
+use crate::util::helper;
 use crate::{
     config::db,
     entity::{account, prelude::*},
@@ -13,7 +14,7 @@ use crate::{
         rejection::IRejection,
         response::{ApiErr, ApiOK, Result},
     },
-    util::{self, auth::Identity, hash::Hash},
+    util::{auth::Identity, hash::Hash},
 };
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
@@ -64,7 +65,7 @@ pub async fn login(
 
     let now = chrono::Local::now().timestamp();
     let login_token =
-        Hash(Algo::MD5).from_string(format!("auth.{}.{}.{}", model.id, now, util::nonce(16)));
+        Hash(Algo::MD5).from_string(format!("auth.{}.{}.{}", model.id, now, helper::nonce(16)));
 
     let auth_token = match Identity::new(model.id, model.role, login_token.clone()).to_auth_token()
     {

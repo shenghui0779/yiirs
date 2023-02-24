@@ -5,7 +5,6 @@ use axum::{
     Extension, Json,
 };
 use axum_extra::extract::WithRejection;
-use chrono::prelude::*;
 use sea_orm::{
     ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
 };
@@ -20,8 +19,8 @@ use crate::{
         response::{ApiErr, ApiOK, Result},
     },
     util::{
-        self,
         auth::{Identity, Role},
+        helper::{self, TimeFmt},
     },
 };
 
@@ -122,7 +121,7 @@ pub async fn list(
         }
     }
 
-    let (offset, limit) = util::query_page(&query);
+    let (offset, limit) = helper::query_page(&query);
 
     let mut total: i64 = 0;
 
@@ -164,17 +163,13 @@ pub async fn list(
     };
 
     for model in models {
-        let mut info = RespInfo {
+        let info = RespInfo {
             id: model.id,
             code: model.code,
             name: model.name,
             created_at: model.created_at,
-            created_at_str: String::from(""),
+            created_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_date(model.created_at),
         };
-
-        if let Some(v) = Local.timestamp_opt(model.created_at, 0).single() {
-            info.created_at_str = v.format("%Y-%m-%d %H:%M:%S").to_string()
-        }
 
         resp.list.push(info);
     }
@@ -228,13 +223,9 @@ pub async fn detail(
         code: model_proj.code,
         name: model_proj.name,
         created_at: model_proj.created_at,
-        created_at_str: String::from(""),
+        created_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_date(model_proj.created_at),
         account: None,
     };
-
-    if let Some(v) = Local.timestamp_opt(model_proj.created_at, 0).single() {
-        resp.created_at_str = v.format("%Y-%m-%d %H:%M:%S").to_string()
-    }
 
     if let Some(v) = model_account {
         resp.account = Some(ProjAccount {
