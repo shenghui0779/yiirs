@@ -6,16 +6,16 @@ use serde::Serialize;
 
 use super::status::Status;
 
-pub struct ApiData<T>(pub Option<T>)
+pub struct ApiOK<T>(pub Option<T>)
 where
     T: Serialize;
 
-impl<T> IntoResponse for ApiData<T>
+impl<T> IntoResponse for ApiOK<T>
 where
     T: Serialize,
 {
     fn into_response(self) -> Response {
-        let ApiData(data) = self;
+        let ApiOK(data) = self;
         let status = Status::OK(data);
 
         Json(status.to_reply()).into_response()

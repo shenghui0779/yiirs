@@ -2,8 +2,7 @@ use std::collections::HashMap;
 
 use axum::{
     extract::{Path, Query},
-    http::HeaderMap,
-    Json,
+    Extension, Json,
 };
 use axum_extra::extract::WithRejection;
 use chrono::prelude::*;
@@ -18,11 +17,11 @@ use crate::{
     entity::{prelude::*, project},
     result::{
         rejection::IRejection,
-        response::{ApiData, ApiErr, Result},
+        response::{ApiErr, ApiOK, Result},
     },
     util::{
         self,
-        auth::{self, Role},
+        auth::{Identity, Role},
     },
 };
 
@@ -36,17 +35,12 @@ pub struct ParamsCreate {
 }
 
 pub async fn create(
-    headers: HeaderMap,
+    Extension(identity): Extension<Identity>,
     WithRejection(Json(params), _): IRejection<Json<ParamsCreate>>,
-) -> Result<ApiData<()>> {
+) -> Result<ApiOK<()>> {
     if let Err(err) = params.validate() {
         return Err(ApiErr::ErrParams(Some(err.to_string())));
     }
-
-    let identity = match auth::check(headers, Some(Role::Normal)).await {
-        Err(err) => return Err(ApiErr::ErrAuth(Some(err.to_string()))),
-        Ok(v) => v,
-    };
 
     // 校验编号唯一性
     match Project::find()
@@ -82,7 +76,7 @@ pub async fn create(
         return Err(ApiErr::ErrSystem(None));
     }
 
-    Ok(ApiData(None))
+    Ok(ApiOK(None))
 }
 
 #[derive(Debug, Serialize)]
@@ -96,19 +90,14 @@ pub struct RespInfo {
 
 #[derive(Debug, Serialize)]
 pub struct RespList {
-    pub total: u64,
+    pub total: i64,
     pub list: Vec<RespInfo>,
 }
 
 pub async fn list(
-    headers: HeaderMap,
+    Extension(identity): Extension<Identity>,
     Query(query): Query<HashMap<String, String>>,
-) -> Result<ApiData<RespList>> {
-    let identity = match auth::check(headers, Some(Role::Normal)).await {
-        Err(err) => return Err(ApiErr::ErrAuth(Some(err.to_string()))),
-        Ok(v) => v,
-    };
-
+) -> Result<ApiOK<RespList>> {
     let mut builder = Project::find();
 
     if identity.is_role(Role::Super) {
@@ -135,18 +124,23 @@ pub async fn list(
 
     let (offset, limit) = util::query_page(&query);
 
-    let mut total: u64 = 0;
+    let mut total: i64 = 0;
 
     // 仅在第一页计算数量
     if offset == 0 {
-        let ret = builder.clone().count(db::get()).await;
-
-        total = match ret {
+        total = match builder
+            .clone()
+            .select_only()
+            .column_as(project::Column::Id.count(), "count")
+            .into_tuple::<i64>()
+            .one(db::get())
+            .await
+        {
             Err(err) => {
                 tracing::error!(error = ?err, "err count project");
                 return Err(ApiErr::ErrSystem(None));
             }
-            Ok(v) => v,
+            Ok(v) => v.unwrap_or_default(),
         }
     }
 
@@ -185,7 +179,7 @@ pub async fn list(
         resp.list.push(info);
     }
 
-    Ok(ApiData(Some(resp)))
+    Ok(ApiOK(Some(resp)))
 }
 
 #[derive(Debug, Serialize)]
@@ -205,14 +199,9 @@ pub struct ProjAccount {
 }
 
 pub async fn detail(
-    headers: HeaderMap,
+    Extension(identity): Extension<Identity>,
     Path(project_id): Path<u64>,
-) -> Result<ApiData<RespDetail>> {
-    let identity = match auth::check(headers, Some(Role::Normal)).await {
-        Err(err) => return Err(ApiErr::ErrAuth(Some(err.to_string()))),
-        Ok(v) => v,
-    };
-
+) -> Result<ApiOK<RespDetail>> {
     let (model_proj, model_account) = match Project::find_by_id(project_id)
         .find_also_related(Account)
         .one(db::get())
@@ -254,5 +243,5 @@ pub async fn detail(
         })
     }
 
-    Ok(ApiData(Some(resp)))
+    Ok(ApiOK(Some(resp)))
 }

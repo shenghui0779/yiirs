@@ -1,4 +1,4 @@
-use axum::{http::HeaderMap, Json};
+use axum::{Extension, Json};
 use axum_extra::extract::WithRejection;
 use sea_orm::sea_query::Expr;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, Set};
@@ -11,13 +11,9 @@ use crate::{
     entity::{account, prelude::*},
     result::{
         rejection::IRejection,
-        response::{ApiData, ApiErr, Result},
+        response::{ApiErr, ApiOK, Result},
     },
-    util::{
-        self,
-        auth::{self, Identity},
-        hash::Hash,
-    },
+    util::{self, auth::Identity, hash::Hash},
 };
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
@@ -37,7 +33,7 @@ pub struct RespLogin {
 
 pub async fn login(
     WithRejection(Json(params), _): IRejection<Json<ParamsLogin>>,
-) -> Result<ApiData<RespLogin>> {
+) -> Result<ApiOK<RespLogin>> {
     if let Err(err) = params.validate() {
         return Err(ApiErr::ErrParams(Some(err.to_string())));
     }
@@ -68,10 +64,10 @@ pub async fn login(
 
     let now = chrono::Local::now().timestamp();
     let login_token =
-        Hash(Algo::MD5).from_string(format!("auth-{}-{}-{}", model.id, now, util::nonce(16)));
+        Hash(Algo::MD5).from_string(format!("auth.{}.{}.{}", model.id, now, util::nonce(16)));
 
-    let identity = Identity::new(model.id, model.role, login_token.clone());
-    let auth_token = match identity.encrypt() {
+    let auth_token = match Identity::new(model.id, model.role, login_token.clone()).to_auth_token()
+    {
         Err(err) => {
             tracing::error!(error = ?err, "err identity encrypt");
             return Err(ApiErr::ErrSystem(None));
@@ -103,17 +99,12 @@ pub async fn login(
         auth_token,
     };
 
-    Ok(ApiData(Some(resp)))
+    Ok(ApiOK(Some(resp)))
 }
 
-pub async fn logout(headers: HeaderMap) -> Result<ApiData<()>> {
-    let identity = match auth::check(headers, None).await {
-        Err(err) => return Err(ApiErr::ErrSystem(Some(err.to_string()))),
-        Ok(v) => v,
-    };
-
+pub async fn logout(Extension(identity): Extension<Identity>) -> Result<ApiOK<()>> {
     if identity.id() == 0 {
-        return Ok(ApiData(None));
+        return Ok(ApiOK(None));
     }
 
     let ret = Account::update_many()
@@ -131,5 +122,5 @@ pub async fn logout(headers: HeaderMap) -> Result<ApiData<()>> {
         return Err(ApiErr::ErrSystem(None));
     }
 
-    Ok(ApiData(None))
+    Ok(ApiOK(None))
 }

@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use axum::{
-    extract::{Json, Path, Query},
-    http::HeaderMap,
+    extract::{Path, Query},
+    Extension, Json,
 };
 use axum_extra::extract::WithRejection;
 use chrono::prelude::*;
@@ -17,11 +17,11 @@ use crate::{
     entity::{account, prelude::*},
     result::{
         rejection::IRejection,
-        response::{ApiData, ApiErr, Result},
+        response::{ApiErr, ApiOK, Result},
     },
     util::{
         self,
-        auth::{self, Role},
+        auth::{Identity, Role},
         hash::{Algo, Hash},
     },
 };
@@ -37,17 +37,15 @@ pub struct ParamsCreate {
 }
 
 pub async fn create(
-    headers: HeaderMap,
+    Extension(identity): Extension<Identity>,
     WithRejection(Json(params), _): IRejection<Json<ParamsCreate>>,
-) -> Result<ApiData<()>> {
-    if let Err(err) = params.validate() {
-        return Err(ApiErr::ErrParams(Some(err.to_string())));
+) -> Result<ApiOK<()>> {
+    if !identity.is_role(Role::Super) {
+        return Err(ApiErr::ErrPerm(None));
     }
 
-    let ret = auth::check(headers, Some(Role::Super)).await;
-
-    if let Err(err) = ret {
-        return Err(ApiErr::ErrAuth(Some(err.to_string())));
+    if let Err(err) = params.validate() {
+        return Err(ApiErr::ErrParams(Some(err.to_string())));
     }
 
     match Account::find()
@@ -88,7 +86,7 @@ pub async fn create(
         return Err(ApiErr::ErrSystem(None));
     }
 
-    Ok(ApiData(None))
+    Ok(ApiOK(None))
 }
 
 #[derive(Debug, Serialize)]
@@ -102,11 +100,12 @@ pub struct RespInfo {
     pub created_at_str: String,
 }
 
-pub async fn info(headers: HeaderMap, Path(account_id): Path<u64>) -> Result<ApiData<RespInfo>> {
-    let ret = auth::check(headers, Some(Role::Super)).await;
-
-    if let Err(err) = ret {
-        return Err(ApiErr::ErrAuth(Some(err.to_string())));
+pub async fn info(
+    Extension(identity): Extension<Identity>,
+    Path(account_id): Path<u64>,
+) -> Result<ApiOK<RespInfo>> {
+    if !identity.is_role(Role::Super) {
+        return Err(ApiErr::ErrPerm(None));
     }
 
     let model = match Account::find_by_id(account_id).one(db::get()).await {
@@ -140,23 +139,21 @@ pub async fn info(headers: HeaderMap, Path(account_id): Path<u64>) -> Result<Api
         }
     }
 
-    Ok(ApiData(Some(resp)))
+    Ok(ApiOK(Some(resp)))
 }
 
 #[derive(Debug, Serialize)]
 pub struct RespList {
-    pub total: u64,
+    pub total: i64,
     pub list: Vec<RespInfo>,
 }
 
 pub async fn list(
-    headers: HeaderMap,
+    Extension(identity): Extension<Identity>,
     Query(query): Query<HashMap<String, String>>,
-) -> Result<ApiData<RespList>> {
-    let ret = auth::check(headers, Some(Role::Super)).await;
-
-    if let Err(err) = ret {
-        return Err(ApiErr::ErrAuth(Some(err.to_string())));
+) -> Result<ApiOK<RespList>> {
+    if !identity.is_role(Role::Super) {
+        return Err(ApiErr::ErrPerm(None));
     }
 
     let mut builder = Account::find();
@@ -169,18 +166,23 @@ pub async fn list(
 
     let (offset, limit) = util::query_page(&query);
 
-    let mut total: u64 = 0;
+    let mut total: i64 = 0;
 
     // 仅在第一页计算数量
     if offset == 0 {
-        let ret = builder.clone().count(db::get()).await;
-
-        total = match ret {
+        total = match builder
+            .clone()
+            .select_only()
+            .column_as(account::Column::Id.count(), "count")
+            .into_tuple::<i64>()
+            .one(db::get())
+            .await
+        {
             Err(err) => {
                 tracing::error!(error = ?err, "err count account");
                 return Err(ApiErr::ErrSystem(None));
             }
-            Ok(v) => v,
+            Ok(v) => v.unwrap_or_default(),
         }
     }
 
@@ -227,5 +229,5 @@ pub async fn list(
         resp.list.push(info);
     }
 
-    Ok(ApiData(Some(resp)))
+    Ok(ApiOK(Some(resp)))
 }

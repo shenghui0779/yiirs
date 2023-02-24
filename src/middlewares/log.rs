@@ -2,21 +2,22 @@ use axum::{
     body::Body,
     http::{header::CONTENT_TYPE, Request},
     middleware::Next,
-    response::IntoResponse,
+    response::{IntoResponse, Response},
 };
 
-use crate::result::response::ApiErr;
+use crate::{result::response::ApiErr, util::auth::Identity};
 
-pub async fn handle<B>(
-    request: Request<Body>,
-    next: Next<Body>,
-) -> Result<impl IntoResponse, ApiErr> {
+pub async fn handle<B>(request: Request<Body>, next: Next<Body>) -> Response {
     let enter_time = chrono::Local::now();
     let req_method = request.method().to_string();
     let req_uri = request.uri().to_string();
+    let identity = match request.extensions().get::<Identity>() {
+        Some(v) => v.to_string(),
+        None => String::from("<none>"),
+    };
 
     let (response, body) = match drain_body(request, next).await {
-        Err(err) => return Err(err),
+        Err(err) => return err.into_response(),
         Ok(v) => v,
     };
 
@@ -27,18 +28,19 @@ pub async fn handle<B>(
     tracing::info!(
         method = req_method,
         uri = req_uri,
+        identity = identity,
         body = body,
         duration = duration,
         "request info"
     );
 
-    Ok(response)
+    response
 }
 
 async fn drain_body(
     request: Request<Body>,
     next: Next<Body>,
-) -> Result<(impl IntoResponse, Option<String>), ApiErr> {
+) -> Result<(Response, Option<String>), ApiErr> {
     let ok = match request
         .headers()
         .get(CONTENT_TYPE)

@@ -1,7 +1,6 @@
 use std::env;
 
-use anyhow::{anyhow, Ok, Result};
-use axum::http::HeaderMap;
+use anyhow::{anyhow, Result};
 use base64::{prelude::BASE64_STANDARD, Engine};
 use crypto::aes::KeySize::KeySize256;
 use sea_orm::EntityTrait;
@@ -11,12 +10,13 @@ use crate::{config::db, entity::prelude::Account};
 
 use super::crypto::AES;
 
+#[allow(dead_code)]
 pub enum Role {
     Super,
     Normal,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Identity {
     i: u64,
     r: i8,
@@ -31,9 +31,65 @@ impl Identity {
             t: token,
         }
     }
+
+    pub fn empty() -> Self {
+        Self {
+            i: 0,
+            r: 0,
+            t: String::from(""),
+        }
+    }
+
+    pub fn from_auth_token(token: String) -> Self {
+        let cipher = match BASE64_STANDARD.decode(token) {
+            Err(err) => {
+                tracing::error!(error = ?err, "err invalid auth_token");
+                return Identity::empty();
+            }
+            Ok(v) => v,
+        };
+
+        let secret = match env::var("API_SECRET") {
+            Err(err) => {
+                tracing::error!(error = ?err, "err missing env(API_SECRET)");
+                return Identity::empty();
+            }
+            Ok(v) => v,
+        };
+        let key = secret.as_bytes();
+
+        let plain = match AES::CBC(KeySize256, key, &key[..16]).decrypt(&cipher) {
+            Err(err) => {
+                tracing::error!(error = ?err, "err invalid auth_token");
+                return Identity::empty();
+            }
+            Ok(v) => v,
+        };
+
+        match serde_json::from_slice::<Identity>(&plain) {
+            Err(err) => {
+                tracing::error!(error = ?err, "err invalid auth_token");
+                return Identity::empty();
+            }
+            Ok(identity) => identity,
+        }
+    }
+
+    pub fn to_auth_token(&self) -> Result<String> {
+        let secret = env::var("API_SECRET")?;
+        let key = secret.as_bytes();
+
+        let plain = serde_json::to_vec(self)?;
+
+        let cipher = AES::CBC(KeySize256, key, &key[..16]).encrypt(&plain)?;
+
+        Ok(BASE64_STANDARD.encode(cipher))
+    }
+
     pub fn id(&self) -> u64 {
         self.i
     }
+
     pub fn is_role(&self, role: Role) -> bool {
         match role {
             Role::Normal => {
@@ -50,80 +106,33 @@ impl Identity {
 
         false
     }
-    pub fn match_role(&self, role: Role) -> bool {
-        match role {
-            Role::Normal => {
-                if self.r >= 1 {
-                    return true;
+
+    pub async fn check(&self) -> Result<()> {
+        if self.id() == 0 {
+            return Err(anyhow!("未授权，请先登录"));
+        }
+
+        match Account::find_by_id(self.id()).one(db::get()).await? {
+            None => return Err(anyhow!("授权账号不存在")),
+            Some(v) => {
+                if v.login_token.len() == 0 || self.t != v.login_token {
+                    return Err(anyhow!("授权已失效"));
                 }
             }
-            Role::Super => {
-                if self.r >= 2 {
-                    return true;
-                }
-            }
         }
 
-        false
+        Ok(())
     }
-    pub fn match_token(&self, login_token: &str) -> bool {
-        if self.t == login_token {
-            return true;
+
+    pub fn to_string(&self) -> String {
+        if self.i == 0 {
+            return String::from("<none>");
         }
 
-        false
-    }
-    pub fn decrypt(s: String) -> Result<Identity> {
-        let cipher = BASE64_STANDARD.decode(s)?;
-
-        let secret = env::var("API_SECRET")?;
-        let key = secret.as_bytes();
-
-        let plain = AES::CBC(KeySize256, key, &key[..16]).decrypt(&cipher)?;
-
-        let identity: Identity = serde_json::from_slice(&plain)?;
-
-        Ok(identity)
-    }
-
-    pub fn encrypt(&self) -> Result<String> {
-        let secret = env::var("API_SECRET")?;
-        let key = secret.as_bytes();
-
-        let plain = serde_json::to_vec(self)?;
-
-        let cipher = AES::CBC(KeySize256, key, &key[..16]).encrypt(&plain)?;
-
-        Ok(BASE64_STANDARD.encode(cipher))
-    }
-}
-
-pub async fn check(headers: HeaderMap, role: Option<Role>) -> Result<Identity> {
-    let token = match headers.get("authorization") {
-        None => return Err(anyhow!("未授权，请先登录")),
-        Some(v) => v.to_str()?.to_string(),
-    };
-
-    let identity = Identity::decrypt(token)?;
-
-    if identity.id() == 0 {
-        return Err(anyhow!("未授权，请先登录"));
-    }
-
-    if let Some(v) = role {
-        if !identity.match_role(v) {
-            return Err(anyhow!("权限不足"));
+        if self.r == 0 {
+            return format!("id:{}|token:{}", self.i, self.t);
         }
-    }
 
-    match Account::find_by_id(identity.id()).one(db::get()).await? {
-        None => return Err(anyhow!("授权账号不存在")),
-        Some(v) => {
-            if v.login_token.len() == 0 || !identity.match_token(&v.login_token) {
-                return Err(anyhow!("授权已失效"));
-            }
-        }
+        format!("id:{}|role:{}|token:{}", self.i, self.r, self.t)
     }
-
-    Ok(identity)
 }
