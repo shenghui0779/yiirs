@@ -13,7 +13,7 @@ pub struct TimeFmt<'a>(pub &'a str);
 
 #[allow(dead_code)]
 impl<'a> TimeFmt<'a> {
-    // Unix时间戳格式化 (%Y-%m-%d %H:%M:%S)
+    // Unix时间戳格式化，如：`%Y-%m-%d %H:%M:%S`
     pub fn to_date(self, timestamp: i64) -> String {
         let TimeFmt(format) = self;
 
@@ -27,7 +27,7 @@ impl<'a> TimeFmt<'a> {
         }
     }
 
-    // 日期转Unix时间戳 (%Y-%m-%d %H:%M:%S)
+    // 日期转Unix时间戳，如：`%Y-%m-%d %H:%M:%S`
     pub fn to_time(self, datetime: &str) -> i64 {
         let TimeFmt(format) = self;
 
