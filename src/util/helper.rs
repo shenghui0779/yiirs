@@ -69,6 +69,7 @@ pub fn query_page(args: &HashMap<String, String>) -> (u64, u64) {
     (offset, limit)
 }
 
+#[allow(dead_code)]
 pub fn new_validation_err(s: String) -> ValidationError {
     return ValidationError {
         code: Cow::from(""),
