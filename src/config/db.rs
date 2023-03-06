@@ -5,7 +5,7 @@ use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 
 static DB: OnceCell<DatabaseConnection> = OnceCell::new();
 
-pub async fn init() {
+pub async fn init(debug: bool) {
     let dsn = env::var("DATABASE_URL").expect("缺少配置：DATABASE_URL");
     let min_conns = env::var("DB_MIN_CONNS")
         .expect("缺少配置：DB_MIN_CONNS")
@@ -27,14 +27,6 @@ pub async fn init() {
         .expect("缺少配置：DB_MAX_LIFETIME")
         .parse::<u64>()
         .expect("配置DB_MAX_LIFETIME必须为整数");
-
-    let debug = match env::var("DEBUG") {
-        Err(_) => false,
-        Ok(s) => match s.parse::<bool>() {
-            Err(_) => false,
-            Ok(v) => v,
-        },
-    };
 
     let mut opt = ConnectOptions::new(dsn);
 

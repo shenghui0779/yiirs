@@ -5,7 +5,7 @@ use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::fmt::format::Writer;
 use tracing_subscriber::{self, fmt::time::FormatTime};
 
-// 用来格式化日志的输出时间格式
+// 格式化日志的输出时间格式
 struct LocalTimer;
 
 impl FormatTime for LocalTimer {
@@ -14,32 +14,30 @@ impl FormatTime for LocalTimer {
     }
 }
 
-pub async fn init() -> WorkerGuard {
+pub fn init(debug: bool) -> WorkerGuard {
     // 直接初始化，采用默认的Subscriber，默认只输出INFO、WARN、ERROR级别的日志
     // tracing_subscriber::fmt::init();
 
-    // 开发环境，日志输出到控制台
-    if let Ok(v) = env::var("ENV") {
-        if v == "dev" {
-            let (non_blocking, guard) = tracing_appender::non_blocking(std::io::stdout());
-            tracing_subscriber::fmt()
-                .with_max_level(Level::DEBUG)
-                .with_file(true)
-                .with_line_number(true)
-                .with_timer(LocalTimer)
-                .with_writer(non_blocking)
-                .json()
-                .flatten_event(true)
-                .init();
+    let level = if debug { Level::DEBUG } else { Level::INFO };
 
-            return guard;
-        }
+    // 开发环境，日志输出到控制台
+    if env::var("ENV").unwrap_or(String::from("dev")) == "dev" {
+        let (non_blocking, guard) = tracing_appender::non_blocking(std::io::stdout());
+
+        tracing_subscriber::fmt()
+            .with_max_level(level)
+            .with_file(true)
+            .with_line_number(true)
+            .with_timer(LocalTimer)
+            .with_writer(non_blocking)
+            .json()
+            .flatten_event(true)
+            .init();
+
+        return guard;
     }
 
-    let log_path = match env::var("LOG_PATH") {
-        Ok(v) => v,
-        Err(_) => "logs".to_string(),
-    };
+    let log_path = env::var("LOG_PATH").unwrap_or(String::from("logs"));
 
     // 使用tracing_appender，指定日志的输出目标位置
     // 参考: https://docs.rs/tracing-appender/0.2.0/tracing_appender/
@@ -49,7 +47,7 @@ pub async fn init() -> WorkerGuard {
 
     // 初始化并设置日志格式(定制和筛选日志)
     tracing_subscriber::fmt()
-        .with_max_level(Level::DEBUG)
+        .with_max_level(level)
         .with_file(true)
         .with_line_number(true) // 写入标准输出
         .with_ansi(false) // 如果日志是写入文件，应将ansi的颜色输出功能关掉

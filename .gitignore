@@ -20,5 +20,6 @@
 
 # Log files
 *.log
+*.log.*
 
 .env
