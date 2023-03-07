@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tokio = { version = "1.25.0", features = ["full"] }
+tokio = { version = "1.26.0", features = ["full"] }
 dotenv = "0.15.0"
 thiserror = "1.0.38"
 anyhow = "1.0.69"
@@ -33,8 +33,8 @@ sea-orm = { version = "0.11.0", features = [
     "debug-print",
 ] }
 hyper = "0.14.24"
-tower-http = { version = "0.3.5", features = ["trace"] }
-axum = { version = "0.6.7", features = ["headers", "macros"] }
-axum-extra = "0.5.0"
+tower-http = { version = "0.4.0", features = ["trace"] }
+axum = { version = "0.6.10", features = ["headers", "macros"] }
+axum-extra = "0.7.0"
 ulid = "1.0.0"
 validator = { version = "0.16.0", features = ["derive"] }
