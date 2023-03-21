@@ -14,6 +14,7 @@ pub enum MyRejection {
     #[error(transparent)]
     JSONExtractor(#[from] JsonRejection),
 }
+
 // We implement `IntoResponse` so MyRejection can be used as a response
 impl IntoResponse for MyRejection {
     fn into_response(self) -> Response {
