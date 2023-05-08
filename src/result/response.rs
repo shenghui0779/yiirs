@@ -34,11 +34,13 @@ pub enum ApiErr {
     ErrService(Option<String>),
 }
 
+use ApiErr::*;
+
 impl IntoResponse for ApiErr {
     fn into_response(self) -> Response {
         let status = match self {
-            ApiErr::Error(code, msg) => Status::<()>::Err(code, msg),
-            ApiErr::ErrParams(msg) => {
+            Error(code, msg) => Status::<()>::Err(code, msg),
+            ErrParams(msg) => {
                 let code = 10000;
 
                 match msg {
@@ -46,7 +48,7 @@ impl IntoResponse for ApiErr {
                     None => Status::<()>::Err(code, String::from("参数错误")),
                 }
             }
-            ApiErr::ErrAuth(msg) => {
+            ErrAuth(msg) => {
                 let code = 20000;
 
                 match msg {
@@ -54,7 +56,7 @@ impl IntoResponse for ApiErr {
                     None => Status::<()>::Err(code, String::from("未授权，请先登录")),
                 }
             }
-            ApiErr::ErrPerm(msg) => {
+            ErrPerm(msg) => {
                 let code = 30000;
 
                 match msg {
@@ -62,7 +64,7 @@ impl IntoResponse for ApiErr {
                     None => Status::<()>::Err(code, String::from("权限不足")),
                 }
             }
-            ApiErr::ErrNotFound(msg) => {
+            ErrNotFound(msg) => {
                 let code = 40000;
 
                 match msg {
@@ -70,7 +72,7 @@ impl IntoResponse for ApiErr {
                     None => Status::<()>::Err(code, String::from("数据不存在")),
                 }
             }
-            ApiErr::ErrSystem(msg) => {
+            ErrSystem(msg) => {
                 let code = 50000;
 
                 match msg {
@@ -78,7 +80,7 @@ impl IntoResponse for ApiErr {
                     None => Status::<()>::Err(code, String::from("内部服务器错误，请稍后重试")),
                 }
             }
-            ApiErr::ErrData(msg) => {
+            ErrData(msg) => {
                 let code = 60000;
 
                 match msg {
@@ -86,7 +88,7 @@ impl IntoResponse for ApiErr {
                     None => Status::<()>::Err(code, String::from("数据异常")),
                 }
             }
-            ApiErr::ErrService(msg) => {
+            ErrService(msg) => {
                 let code = 70000;
 
                 match msg {
