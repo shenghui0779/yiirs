@@ -59,7 +59,7 @@ fn header_to_string(h: &HeaderMap) -> String {
 
     match serde_json::to_string(&map) {
         Ok(v) => v,
-        Err(_) => String::from("<nil>"),
+        Err(_) => String::from("<none>"),
     }
 }
 
