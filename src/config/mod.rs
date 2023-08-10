@@ -24,7 +24,7 @@ pub async fn init() -> WorkerGuard {
     let guard = logger::init(debug);
 
     // init db
-    // db::init(debug).await;
+    db::init(debug).await;
 
     guard
 }
