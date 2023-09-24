@@ -19,13 +19,13 @@ impl<'a> TimeFmt<'a> {
         let timezone = FixedOffset::east_opt(8 * 3600).unwrap();
 
         if timestamp < 0 {
-            return Local::now()
+            return Utc::now()
                 .with_timezone(&timezone)
                 .format(format)
                 .to_string();
         }
 
-        match Local.timestamp_opt(timestamp, 0).single() {
+        match DateTime::<Utc>::from_timestamp(timestamp, 0) {
             None => String::from(""),
             Some(v) => v.with_timezone(&timezone).format(format).to_string(),
         }
@@ -41,9 +41,9 @@ impl<'a> TimeFmt<'a> {
 
         let timezone = FixedOffset::east_opt(8 * 3600).unwrap();
 
-        match Local.datetime_from_str(datetime, format) {
+        match NaiveDateTime::parse_from_str(datetime, format) {
             Err(_) => 0,
-            Ok(v) => v.with_timezone(&timezone).timestamp(),
+            Ok(v) => v.and_local_timezone(timezone).unwrap().timestamp(),
         }
     }
 }
@@ -82,4 +82,21 @@ pub fn new_validation_err(s: String) -> ValidationError {
         message: Some(Cow::from(s)),
         params: HashMap::new(),
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::TimeFmt;
+
+    #[test]
+    fn to_date() {
+        let datetime = TimeFmt("%Y-%m-%d %H:%M:%S").to_date(1689140713);
+        assert_eq!(datetime, "2023-07-12 13:45:13")
+    }
+
+    #[test]
+    fn to_time() {
+        let timestamp = TimeFmt("%Y-%m-%d %H:%M:%S").to_time("2023-07-12 13:45:13");
+        assert_eq!(timestamp, 1689140713);
+    }
 }
