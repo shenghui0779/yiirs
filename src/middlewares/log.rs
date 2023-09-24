@@ -1,9 +1,12 @@
+use std::collections::HashMap;
+
 use axum::{
     body::Body,
     http::{header::CONTENT_TYPE, Request},
     middleware::Next,
     response::{IntoResponse, Response},
 };
+use hyper::HeaderMap;
 
 use crate::{result::response::ApiErr, util::auth::Identity};
 
@@ -11,6 +14,7 @@ pub async fn handle<B>(request: Request<Body>, next: Next<Body>) -> Response {
     let enter_time = chrono::Local::now();
     let req_method = request.method().to_string();
     let req_uri = request.uri().to_string();
+    let req_header = header_to_string(request.headers());
     let identity = match request.extensions().get::<Identity>() {
         Some(v) => v.to_string(),
         None => String::from("<none>"),
@@ -28,13 +32,35 @@ pub async fn handle<B>(request: Request<Body>, next: Next<Body>) -> Response {
     tracing::info!(
         method = req_method,
         uri = req_uri,
+        headers = req_header,
         identity = identity,
         body = body,
         duration = duration,
-        "request info"
+        "请求记录"
     );
 
     response
+}
+
+fn header_to_string(h: &HeaderMap) -> String {
+    let mut map: HashMap<String, Vec<String>> = HashMap::new();
+
+    for k in h.keys() {
+        let mut vals: Vec<String> = Vec::new();
+
+        for v in h.get_all(k) {
+            if let Ok(s) = v.to_str() {
+                vals.push(s.to_string())
+            }
+        }
+
+        map.insert(k.to_string(), vals);
+    }
+
+    match serde_json::to_string(&map) {
+        Ok(v) => v,
+        Err(_) => String::from("<none>"),
+    }
 }
 
 async fn drain_body(
