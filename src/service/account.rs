@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use axum::{
-    extract::{Path, Query},
+    extract::{Path, Query, State},
     Extension, Json,
 };
 use axum_extra::extract::WithRejection;
@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::{
-    config::db,
+    config,
     entity::{account, prelude::*},
     result::{
         rejection::IRejection,
@@ -36,6 +36,7 @@ pub struct ParamsCreate {
 }
 
 pub async fn create(
+    State(state): State<config::AppState>,
     Extension(identity): Extension<Identity>,
     WithRejection(Json(params), _): IRejection<Json<ParamsCreate>>,
 ) -> Result<ApiOK<()>> {
@@ -49,7 +50,7 @@ pub async fn create(
 
     match Account::find()
         .filter(account::Column::Username.eq(params.username.clone()))
-        .count(db::get())
+        .count(&state.db)
         .await
     {
         Err(err) => {
@@ -79,7 +80,7 @@ pub async fn create(
         ..Default::default()
     };
 
-    if let Err(err) = Account::insert(model).exec(db::get()).await {
+    if let Err(err) = Account::insert(model).exec(&state.db).await {
         tracing::error!(error = ?err, "err insert account");
 
         return Err(ApiErr::ErrSystem(None));
@@ -100,6 +101,7 @@ pub struct RespInfo {
 }
 
 pub async fn info(
+    State(state): State<config::AppState>,
     Extension(identity): Extension<Identity>,
     Path(account_id): Path<u64>,
 ) -> Result<ApiOK<RespInfo>> {
@@ -107,7 +109,7 @@ pub async fn info(
         return Err(ApiErr::ErrPerm(None));
     }
 
-    let model = match Account::find_by_id(account_id).one(db::get()).await {
+    let model = match Account::find_by_id(account_id).one(&state.db).await {
         Err(err) => {
             tracing::error!(error = ?err, "err find account");
             return Err(ApiErr::ErrSystem(None));
@@ -138,6 +140,7 @@ pub struct RespList {
 }
 
 pub async fn list(
+    State(state): State<config::AppState>,
     Extension(identity): Extension<Identity>,
     Query(query): Query<HashMap<String, String>>,
 ) -> Result<ApiOK<RespList>> {
@@ -164,7 +167,7 @@ pub async fn list(
             .select_only()
             .column_as(account::Column::Id.count(), "count")
             .into_tuple::<i64>()
-            .one(db::get())
+            .one(&state.db)
             .await
         {
             Err(err) => {
@@ -179,7 +182,7 @@ pub async fn list(
         .order_by(account::Column::Id, Order::Desc)
         .offset(offset)
         .limit(limit)
-        .all(db::get())
+        .all(&state.db)
         .await
     {
         Err(err) => {

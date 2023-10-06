@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use axum::{
-    extract::{Path, Query},
+    extract::{Path, Query, State},
     Extension, Json,
 };
 use axum_extra::extract::WithRejection;
@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::{
-    config::db,
+    config,
     entity::{prelude::*, project},
     result::{
         rejection::IRejection,
@@ -34,6 +34,7 @@ pub struct ParamsCreate {
 }
 
 pub async fn create(
+    State(state): State<config::AppState>,
     Extension(identity): Extension<Identity>,
     WithRejection(Json(params), _): IRejection<Json<ParamsCreate>>,
 ) -> Result<ApiOK<()>> {
@@ -44,7 +45,7 @@ pub async fn create(
     // 校验编号唯一性
     match Project::find()
         .filter(project::Column::Code.eq(params.code.clone()))
-        .count(db::get())
+        .count(&state.db)
         .await
     {
         Err(err) => {
@@ -70,7 +71,7 @@ pub async fn create(
         ..Default::default()
     };
 
-    if let Err(err) = Project::insert(am).exec(db::get()).await {
+    if let Err(err) = Project::insert(am).exec(&state.db).await {
         tracing::error!(error = ?err, "err insert project");
         return Err(ApiErr::ErrSystem(None));
     }
@@ -94,6 +95,7 @@ pub struct RespList {
 }
 
 pub async fn list(
+    State(state): State<config::AppState>,
     Extension(identity): Extension<Identity>,
     Query(query): Query<HashMap<String, String>>,
 ) -> Result<ApiOK<RespList>> {
@@ -132,7 +134,7 @@ pub async fn list(
             .select_only()
             .column_as(project::Column::Id.count(), "count")
             .into_tuple::<i64>()
-            .one(db::get())
+            .one(&state.db)
             .await
         {
             Err(err) => {
@@ -147,7 +149,7 @@ pub async fn list(
         .order_by(project::Column::Id, Order::Desc)
         .offset(offset)
         .limit(limit)
-        .all(db::get())
+        .all(&state.db)
         .await
     {
         Err(err) => {
@@ -194,12 +196,13 @@ pub struct ProjAccount {
 }
 
 pub async fn detail(
+    State(state): State<config::AppState>,
     Extension(identity): Extension<Identity>,
     Path(project_id): Path<u64>,
 ) -> Result<ApiOK<RespDetail>> {
     let (model_proj, model_account) = match Project::find_by_id(project_id)
         .find_also_related(Account)
-        .one(db::get())
+        .one(&state.db)
         .await
     {
         Err(err) => {

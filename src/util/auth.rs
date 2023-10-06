@@ -3,10 +3,10 @@ use std::env;
 use anyhow::{anyhow, Result};
 use base64::{prelude::BASE64_STANDARD, Engine};
 use crypto::aes::KeySize::KeySize256;
-use sea_orm::EntityTrait;
+use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 
-use crate::{config::db, entity::prelude::Account};
+use crate::entity::prelude::Account;
 
 use super::crypto::AES;
 
@@ -107,12 +107,12 @@ impl Identity {
         false
     }
 
-    pub async fn check(&self) -> Result<()> {
+    pub async fn check(&self, db: &DatabaseConnection) -> Result<()> {
         if self.id() == 0 {
             return Err(anyhow!("未授权，请先登录"));
         }
 
-        match Account::find_by_id(self.id()).one(db::get()).await? {
+        match Account::find_by_id(self.id()).one(db).await? {
             None => return Err(anyhow!("授权账号不存在")),
             Some(v) => {
                 if v.login_token.len() == 0 || self.t != v.login_token {

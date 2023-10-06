@@ -1,11 +1,8 @@
 use std::{env, time::Duration};
 
-use once_cell::sync::OnceCell;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 
-static DB: OnceCell<DatabaseConnection> = OnceCell::new();
-
-pub async fn init(debug: bool) {
+pub async fn init(debug: bool) -> DatabaseConnection {
     let dsn = env::var("DATABASE_URL").expect("缺少配置：DATABASE_URL");
     let min_conns = env::var("DB_MIN_CONNS")
         .expect("缺少配置：DB_MIN_CONNS")
@@ -37,9 +34,5 @@ pub async fn init(debug: bool) {
         .max_lifetime(Duration::from_secs(max_lifetime))
         .sqlx_logging(debug);
 
-    DB.set(Database::connect(opt).await.unwrap()).unwrap()
-}
-
-pub fn get() -> &'static DatabaseConnection {
-    DB.get().unwrap()
+    Database::connect(opt).await.unwrap()
 }

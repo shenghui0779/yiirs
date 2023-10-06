@@ -91,7 +91,6 @@ dependencies = [
  "hyper",
  "log",
  "md-5",
- "once_cell",
  "rand 0.8.5",
  "rsa",
  "rust-crypto",

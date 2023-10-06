@@ -1,3 +1,4 @@
+use axum::extract::State;
 use axum::{Extension, Json};
 use axum_extra::extract::WithRejection;
 use sea_orm::sea_query::Expr;
@@ -5,10 +6,10 @@ use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
+use crate::config;
 use crate::util::hash::Algo;
 use crate::util::helper;
 use crate::{
-    config::db,
     entity::{account, prelude::*},
     result::{
         rejection::IRejection,
@@ -33,6 +34,7 @@ pub struct RespLogin {
 }
 
 pub async fn login(
+    State(state): State<config::AppState>,
     WithRejection(Json(params), _): IRejection<Json<ParamsLogin>>,
 ) -> Result<ApiOK<RespLogin>> {
     if let Err(err) = params.validate() {
@@ -41,7 +43,7 @@ pub async fn login(
 
     let ret = Account::find()
         .filter(account::Column::Username.eq(params.username))
-        .one(db::get())
+        .one(&state.db)
         .await;
 
     let record = match ret {
@@ -86,7 +88,7 @@ pub async fn login(
     let ret_update = Account::update_many()
         .filter(account::Column::Id.eq(model.id))
         .set(am)
-        .exec(db::get())
+        .exec(&state.db)
         .await;
 
     if let Err(err) = ret_update {
@@ -103,7 +105,10 @@ pub async fn login(
     Ok(ApiOK(Some(resp)))
 }
 
-pub async fn logout(Extension(identity): Extension<Identity>) -> Result<ApiOK<()>> {
+pub async fn logout(
+    State(state): State<config::AppState>,
+    Extension(identity): Extension<Identity>,
+) -> Result<ApiOK<()>> {
     if identity.id() == 0 {
         return Ok(ApiOK(None));
     }
@@ -115,7 +120,7 @@ pub async fn logout(Extension(identity): Extension<Identity>) -> Result<ApiOK<()
             account::Column::CreatedAt,
             Expr::value(chrono::Local::now().timestamp()),
         )
-        .exec(db::get())
+        .exec(&state.db)
         .await;
 
     if let Err(err) = ret {

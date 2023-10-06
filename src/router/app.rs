@@ -8,13 +8,14 @@ use axum::{
 use tower_http::trace::TraceLayer;
 
 use crate::{
-    middlewares,
+    config, middlewares,
     service::{account, auth, project},
 };
 
-pub fn init() -> Router {
+pub fn init(state: config::AppState) -> Router {
     // 开放
     let open = Router::new().route("/login", post(auth::login));
+
     // 需授权
     let auth = Router::new()
         .route("/logout", get(auth::logout))
@@ -22,7 +23,10 @@ pub fn init() -> Router {
         .route("/accounts/:account_id", get(account::info))
         .route("/projects", get(project::list).post(project::create))
         .route("/projects/:project_id", get(project::detail))
-        .layer(middleware::from_fn(middlewares::auth::handle));
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            middlewares::auth::handle,
+        ));
 
     Router::new()
         .route("/", get(|| async { "☺ welcome to Rust app" }))
@@ -45,4 +49,5 @@ pub fn init() -> Router {
             }),
         )
         .layer(middleware::from_fn(middlewares::req_id::handle))
+        .with_state(state)
 }
