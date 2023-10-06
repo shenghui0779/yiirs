@@ -10,3 +10,10 @@ import sql   => demo_rs.sql
 
 cargo run
 ```
+
+### login
+
+```sh
+账号：admin
+密码：admin
+```
