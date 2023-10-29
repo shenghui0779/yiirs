@@ -2,13 +2,12 @@ use std::env;
 
 use anyhow::{anyhow, Result};
 use base64::{prelude::BASE64_STANDARD, Engine};
-use crypto::aes::KeySize::KeySize256;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 
 use crate::entity::prelude::Account;
 
-use super::crypto::AES;
+use super::crypto::AesCBC;
 
 #[allow(dead_code)]
 pub enum Role {
@@ -58,7 +57,7 @@ impl Identity {
         };
         let key = secret.as_bytes();
 
-        let plain = match AES::CBC(KeySize256, key, &key[..16]).decrypt(&cipher) {
+        let plain = match AesCBC(key, &key[..16]).decrypt_pkcs5(&cipher) {
             Err(err) => {
                 tracing::error!(error = ?err, "err invalid auth_token");
                 return Identity::empty();
@@ -80,8 +79,7 @@ impl Identity {
         let key = secret.as_bytes();
 
         let plain = serde_json::to_vec(self)?;
-
-        let cipher = AES::CBC(KeySize256, key, &key[..16]).encrypt(&plain)?;
+        let cipher = AesCBC(key, &key[..16]).encrypt_pkcs5(&plain)?;
 
         Ok(BASE64_STANDARD.encode(cipher))
     }
