@@ -6,12 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tokio = { version = "1.32.0", features = ["full"] }
-dotenv = "0.15.0"
-thiserror = "1.0.48"
-anyhow = "1.0.75"
-rand = "0.8.5"
-hex = "0.4.3"
+tokio = { version = "1", features = ["full"] }
+dotenv = "0.15"
+thiserror = "1.0"
+anyhow = "1.0"
+rand = "0.8"
+hex = "0.4"
 openssl = "0.10"
 openssl-sys = "0.9"
 md-5 = "0.10.6"
@@ -19,24 +19,24 @@ sha1 = "0.10.6"
 sha2 = "0.10.7"
 hmac = "0.12.1"
 rsa = "0.9.2"
-base64 = "0.21.4"
+base64 = "0.21"
 rust-crypto = "0.2.36"
-chrono = "0.4.31"
-serde = { version = "1.0.188", features = ["derive"] }
-serde_json = "1.0.107"
-log = "0.4.20"
-tracing = "0.1.37"
-tracing-subscriber = { version = "0.3.17", features = ["json"] }
-tracing-appender = "0.2.2"
-sea-orm = { version = "0.12.3", features = [
+chrono = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+log = "0.4"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json"] }
+tracing-appender = "0.2"
+sea-orm = { version = "0.12", features = [
     "sqlx-mysql",
     "runtime-tokio-rustls",
     "macros",
     "debug-print",
 ] }
-hyper = "0.14.27"
-tower-http = { version = "0.4.4", features = ["trace"] }
-axum = { version = "0.6.20", features = ["headers", "macros"] }
-axum-extra = "0.8.0"
-ulid = "1.1.0"
-validator = { version = "0.16.1", features = ["derive"] }
+hyper = "0.14"
+tower-http = { version = "0.4", features = ["trace"] }
+axum = { version = "0.6", features = ["headers", "macros"] }
+axum-extra = "0.8"
+ulid = "1.1"
+validator = { version = "0.16", features = ["derive"] }

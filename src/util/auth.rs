@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::entity::prelude::Account;
 
-use super::crypto::AesCBC;
+use super::aes::CBC;
 
 #[allow(dead_code)]
 pub enum Role {
@@ -57,7 +57,7 @@ impl Identity {
         };
         let key = secret.as_bytes();
 
-        let plain = match AesCBC(key, &key[..16]).decrypt_pkcs5(&cipher) {
+        let plain = match CBC(key, &key[..16]).decrypt(&cipher) {
             Err(err) => {
                 tracing::error!(error = ?err, "err invalid auth_token");
                 return Identity::empty();
@@ -79,7 +79,7 @@ impl Identity {
         let key = secret.as_bytes();
 
         let plain = serde_json::to_vec(self)?;
-        let cipher = AesCBC(key, &key[..16]).encrypt_pkcs5(&plain)?;
+        let cipher = CBC(key, &key[..16]).encrypt(&plain)?;
 
         Ok(BASE64_STANDARD.encode(cipher))
     }
