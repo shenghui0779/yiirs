@@ -42,49 +42,49 @@ impl Hash {
                 let mut h = Md5::new();
 
                 h.update(b);
-                hex::encode(h.finalize())
+                const_hex::encode(h.finalize())
             }
             SHA1 => {
                 let mut h = Sha1::new();
 
                 h.update(b);
-                hex::encode(h.finalize())
+                const_hex::encode(h.finalize())
             }
             SHA224 => {
                 let mut h = Sha224::new();
 
                 h.update(b);
-                hex::encode(h.finalize())
+                const_hex::encode(h.finalize())
             }
             SHA384 => {
                 let mut h = Sha384::new();
 
                 h.update(b);
-                hex::encode(h.finalize())
+                const_hex::encode(h.finalize())
             }
             SHA256 => {
                 let mut h = Sha256::new();
 
                 h.update(b);
-                hex::encode(h.finalize())
+                const_hex::encode(h.finalize())
             }
             SHA512 => {
                 let mut h = Sha512::new();
 
                 h.update(b);
-                hex::encode(h.finalize())
+                const_hex::encode(h.finalize())
             }
             SHA512_224 => {
                 let mut h = Sha512_224::new();
 
                 h.update(b);
-                hex::encode(h.finalize())
+                const_hex::encode(h.finalize())
             }
             SHA512_256 => {
                 let mut h = Sha512_256::new();
 
                 h.update(b);
-                hex::encode(h.finalize())
+                const_hex::encode(h.finalize())
             }
         }
     }
@@ -116,56 +116,56 @@ impl<'a> HMAC<'a> {
                     .expect("HMAC can take key of any size");
 
                 h.update(b);
-                hex::encode(h.finalize().into_bytes())
+                const_hex::encode(h.finalize().into_bytes())
             }
             SHA1 => {
                 let mut h = Hmac::<Sha1>::new_from_slice(key.as_bytes())
                     .expect("HMAC can take key of any size");
 
                 h.update(b);
-                hex::encode(h.finalize().into_bytes())
+                const_hex::encode(h.finalize().into_bytes())
             }
             SHA224 => {
                 let mut h = Hmac::<Sha224>::new_from_slice(key.as_bytes())
                     .expect("HMAC can take key of any size");
 
                 h.update(b);
-                hex::encode(h.finalize().into_bytes())
+                const_hex::encode(h.finalize().into_bytes())
             }
             SHA256 => {
                 let mut h = Hmac::<Sha256>::new_from_slice(key.as_bytes())
                     .expect("HMAC can take key of any size");
 
                 h.update(b);
-                hex::encode(h.finalize().into_bytes())
+                const_hex::encode(h.finalize().into_bytes())
             }
             SHA384 => {
                 let mut h = Hmac::<Sha384>::new_from_slice(key.as_bytes())
                     .expect("HMAC can take key of any size");
 
                 h.update(b);
-                hex::encode(h.finalize().into_bytes())
+                const_hex::encode(h.finalize().into_bytes())
             }
             SHA512 => {
                 let mut h = Hmac::<Sha512>::new_from_slice(key.as_bytes())
                     .expect("HMAC can take key of any size");
 
                 h.update(b);
-                hex::encode(h.finalize().into_bytes())
+                const_hex::encode(h.finalize().into_bytes())
             }
             SHA512_224 => {
                 let mut h = Hmac::<Sha512_224>::new_from_slice(key.as_bytes())
                     .expect("HMAC can take key of any size");
 
                 h.update(b);
-                hex::encode(h.finalize().into_bytes())
+                const_hex::encode(h.finalize().into_bytes())
             }
             SHA512_256 => {
                 let mut h = Hmac::<Sha512_256>::new_from_slice(key.as_bytes())
                     .expect("HMAC can take key of any size");
 
                 h.update(b);
-                hex::encode(h.finalize().into_bytes())
+                const_hex::encode(h.finalize().into_bytes())
             }
         }
     }
