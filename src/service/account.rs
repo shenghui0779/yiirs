@@ -5,7 +5,6 @@ use axum::{
     Extension, Json,
 };
 use axum_extra::extract::WithRejection;
-use md5::Md5;
 use sea_orm::{
     ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
 };
@@ -21,7 +20,7 @@ use crate::{
     },
     util::{
         auth::{Identity, Role},
-        hash::hash,
+        hash::md5,
         helper::{self, TimeFmt},
     },
 };
@@ -72,7 +71,7 @@ pub async fn create(
 
     let model = account::ActiveModel {
         username: Set(params.username),
-        password: Set(hash::<Md5>(pass.as_bytes())),
+        password: Set(md5(pass.as_bytes())),
         salt: Set(salt),
         role: Set(1),
         realname: Set(params.realname),
