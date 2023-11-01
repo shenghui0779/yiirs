@@ -170,7 +170,7 @@ pub async fn list(
             code: model.code,
             name: model.name,
             created_at: model.created_at,
-            created_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_date(model.created_at),
+            created_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_string(model.created_at),
         };
 
         resp.list.push(info);
@@ -226,7 +226,7 @@ pub async fn detail(
         code: model_proj.code,
         name: model_proj.name,
         created_at: model_proj.created_at,
-        created_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_date(model_proj.created_at),
+        created_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_string(model_proj.created_at),
         account: None,
     };
 

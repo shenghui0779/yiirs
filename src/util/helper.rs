@@ -14,7 +14,7 @@ pub struct TimeFmt<'a>(pub &'a str);
 #[allow(dead_code)]
 impl<'a> TimeFmt<'a> {
     // Unix时间戳格式化 (%Y-%m-%d %H:%M:%S)
-    pub fn to_date(self, timestamp: i64) -> String {
+    pub fn to_string(self, timestamp: i64) -> String {
         let TimeFmt(format) = self;
         let timezone = FixedOffset::east_opt(8 * 3600).unwrap();
 
@@ -89,13 +89,13 @@ mod tests {
     use super::TimeFmt;
 
     #[test]
-    fn to_date() {
-        let datetime = TimeFmt("%Y-%m-%d %H:%M:%S").to_date(1689140713);
+    fn time_to_str() {
+        let datetime = TimeFmt("%Y-%m-%d %H:%M:%S").to_string(1689140713);
         assert_eq!(datetime, "2023-07-12 13:45:13")
     }
 
     #[test]
-    fn to_time() {
+    fn str_to_time() {
         let timestamp = TimeFmt("%Y-%m-%d %H:%M:%S").to_time("2023-07-12 13:45:13");
         assert_eq!(timestamp, 1689140713);
     }

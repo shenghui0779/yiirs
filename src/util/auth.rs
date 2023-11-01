@@ -5,9 +5,7 @@ use base64::{prelude::BASE64_STANDARD, Engine};
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 
-use crate::entity::prelude::Account;
-
-use super::aes::CBC;
+use crate::{crypto::aes::CBC, entity::prelude::Account};
 
 #[allow(dead_code)]
 pub enum Role {

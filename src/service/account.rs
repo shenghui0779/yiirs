@@ -13,6 +13,7 @@ use validator::Validate;
 
 use crate::{
     config,
+    crypto::hash::md5,
     entity::{account, prelude::*},
     result::{
         rejection::IRejection,
@@ -20,7 +21,6 @@ use crate::{
     },
     util::{
         auth::{Identity, Role},
-        hash::md5,
         helper::{self, TimeFmt},
     },
 };
@@ -125,9 +125,9 @@ pub async fn info(
         username: model.username,
         realname: model.realname,
         login_at: model.login_at,
-        login_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_date(model.login_at),
+        login_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_string(model.login_at),
         created_at: model.created_at,
-        created_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_date(model.created_at),
+        created_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_string(model.created_at),
     };
 
     Ok(ApiOK(Some(resp)))
@@ -203,9 +203,9 @@ pub async fn list(
             username: model.username,
             realname: model.realname,
             login_at: model.login_at,
-            login_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_date(model.login_at),
+            login_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_string(model.login_at),
             created_at: model.created_at,
-            created_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_date(model.created_at),
+            created_at_str: TimeFmt("%Y-%m-%d %H:%M:%S").to_string(model.created_at),
         };
 
         resp.list.push(info);

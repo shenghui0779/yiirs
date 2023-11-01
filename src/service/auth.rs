@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::config;
+use crate::crypto::hash::md5;
 use crate::util::helper;
 use crate::{
     entity::{account, prelude::*},
@@ -14,7 +15,7 @@ use crate::{
         rejection::IRejection,
         response::{ApiErr, ApiOK, Result},
     },
-    util::{auth::Identity, hash::md5},
+    util::auth::Identity,
 };
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
