@@ -6,7 +6,6 @@ use sha2::Sha256;
 
 pub fn md5(b: &[u8]) -> String {
     let mut h = Md5::new();
-
     h.update(b);
     const_hex::encode(h.finalize())
 }
@@ -14,7 +13,6 @@ pub fn md5(b: &[u8]) -> String {
 #[allow(dead_code)]
 pub fn sha1(b: &[u8]) -> String {
     let mut h = Sha1::new();
-
     h.update(b);
     const_hex::encode(h.finalize())
 }
@@ -22,7 +20,6 @@ pub fn sha1(b: &[u8]) -> String {
 #[allow(dead_code)]
 pub fn sha256(b: &[u8]) -> String {
     let mut h = Sha256::new();
-
     h.update(b);
     const_hex::encode(h.finalize())
 }
@@ -30,7 +27,6 @@ pub fn sha256(b: &[u8]) -> String {
 #[allow(dead_code)]
 pub fn hash<D: Digest>(b: &[u8]) -> String {
     let mut h = D::new();
-
     h.update(b);
     const_hex::encode(h.finalize())
 }
@@ -38,7 +34,6 @@ pub fn hash<D: Digest>(b: &[u8]) -> String {
 #[allow(dead_code)]
 pub fn hmac_sha256(key: &[u8], b: &[u8]) -> String {
     let mut h = Hmac::<Sha256>::new_from_slice(key).unwrap();
-
     h.update(b);
     const_hex::encode(h.finalize().into_bytes())
 }
@@ -46,7 +41,6 @@ pub fn hmac_sha256(key: &[u8], b: &[u8]) -> String {
 #[allow(dead_code)]
 pub fn hmac<D: Digest + BlockSizeUser>(key: &[u8], b: &[u8]) -> String {
     let mut h = SimpleHmac::<D>::new_from_slice(key).unwrap();
-
     h.update(b);
     const_hex::encode(h.finalize().into_bytes())
 }

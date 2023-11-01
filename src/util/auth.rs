@@ -77,7 +77,7 @@ impl Identity {
         let key = secret.as_bytes();
 
         let plain = serde_json::to_vec(self)?;
-        let cipher = CBC(key, &key[..16]).encrypt(&plain)?;
+        let cipher = CBC(key, &key[..16]).encrypt(&plain, None)?;
 
         Ok(BASE64_STANDARD.encode(cipher))
     }
