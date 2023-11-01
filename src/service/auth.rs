@@ -1,13 +1,13 @@
 use axum::extract::State;
 use axum::{Extension, Json};
 use axum_extra::extract::WithRejection;
+use md5::Md5;
 use sea_orm::sea_query::Expr;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::config;
-use crate::util::hash::Algo;
 use crate::util::helper;
 use crate::{
     entity::{account, prelude::*},
@@ -15,7 +15,7 @@ use crate::{
         rejection::IRejection,
         response::{ApiErr, ApiOK, Result},
     },
-    util::{auth::Identity, hash::Hash},
+    util::{auth::Identity, hash::hash},
 };
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
@@ -61,13 +61,13 @@ pub async fn login(
 
     let pass = format!("{}{}", params.password, model.salt);
 
-    if Hash(Algo::MD5).from_string(pass) != model.password {
+    if hash::<Md5>(pass.as_bytes()) != model.password {
         return Err(ApiErr::ErrAuth(Some("密码错误".to_string())));
     }
 
     let now = chrono::Local::now().timestamp();
     let login_token =
-        Hash(Algo::MD5).from_string(format!("auth.{}.{}.{}", model.id, now, helper::nonce(16)));
+        hash::<Md5>(format!("auth.{}.{}.{}", model.id, now, helper::nonce(16)).as_bytes());
 
     let auth_token = match Identity::new(model.id, model.role, login_token.clone()).to_auth_token()
     {
