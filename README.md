@@ -4,8 +4,9 @@
 
 - 路由使用 [axum](https://github.com/tokio-rs/axum)
 - ORM使用 [sea-orm](https://github.com/SeaQL/sea-orm)
+- Redis使用 [redis-rs](https://github.com/redis-rs/redis-rs)
 - 日志使用 [tracing](https://github.com/tokio-rs/tracing)
-- 配置实用 [dotenv](https://github.com/dotenv-rs/dotenv)
+- 配置实用 [config-rs](https://github.com/mehcode/config-rs)
 - 异步运行时使用 [tokio](https://github.com/tokio-rs/tokio)
 - 参数验证器使用 [validator](https://github.com/Keats/validator)
 - 包含基础的登录授权功能
