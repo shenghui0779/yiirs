@@ -1,5 +1,5 @@
 [package]
-name = "api_tpl"
+name = "api-tpl-rs"
 version = "1.0.0"
 edition = "2021"
 
@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 dotenv = "0.15"
+config = "0.13"
 thiserror = "1.0"
 anyhow = "1.0"
 rand = "0.8"
@@ -33,6 +34,7 @@ sea-orm = { version = "0.12", features = [
     "macros",
     "debug-print",
 ] }
+redis = { version = "0.23", features = ["tokio-comp"] }
 hyper = "0.14"
 tower-http = { version = "0.4", features = ["trace"] }
 axum = { version = "0.6", features = ["headers", "macros"] }

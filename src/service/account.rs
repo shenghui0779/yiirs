@@ -12,7 +12,6 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::{
-    config,
     crypto::hash::md5,
     entity::{account, prelude::*},
     result::{
@@ -22,6 +21,7 @@ use crate::{
     util::{
         auth::{Identity, Role},
         helper::{self, TimeFmt},
+        AppState,
     },
 };
 
@@ -36,7 +36,7 @@ pub struct ParamsCreate {
 }
 
 pub async fn create(
-    State(state): State<config::AppState>,
+    State(state): State<AppState>,
     Extension(identity): Extension<Identity>,
     WithRejection(Json(params), _): IRejection<Json<ParamsCreate>>,
 ) -> Result<ApiOK<()>> {
@@ -101,7 +101,7 @@ pub struct RespInfo {
 }
 
 pub async fn info(
-    State(state): State<config::AppState>,
+    State(state): State<AppState>,
     Extension(identity): Extension<Identity>,
     Path(account_id): Path<u64>,
 ) -> Result<ApiOK<RespInfo>> {
@@ -140,7 +140,7 @@ pub struct RespList {
 }
 
 pub async fn list(
-    State(state): State<config::AppState>,
+    State(state): State<AppState>,
     Extension(identity): Extension<Identity>,
     Query(query): Query<HashMap<String, String>>,
 ) -> Result<ApiOK<RespList>> {

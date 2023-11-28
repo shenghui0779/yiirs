@@ -6,9 +6,8 @@ use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use crate::config;
 use crate::crypto::hash::md5;
-use crate::util::helper;
+use crate::util::{helper, AppState};
 use crate::{
     entity::{account, prelude::*},
     result::{
@@ -34,7 +33,7 @@ pub struct RespLogin {
 }
 
 pub async fn login(
-    State(state): State<config::AppState>,
+    State(state): State<AppState>,
     WithRejection(Json(params), _): IRejection<Json<ParamsLogin>>,
 ) -> Result<ApiOK<RespLogin>> {
     if let Err(err) = params.validate() {
@@ -105,7 +104,7 @@ pub async fn login(
 }
 
 pub async fn logout(
-    State(state): State<config::AppState>,
+    State(state): State<AppState>,
     Extension(identity): Extension<Identity>,
 ) -> Result<ApiOK<()>> {
     if identity.id() == 0 {

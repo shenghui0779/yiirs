@@ -1,5 +1,5 @@
 use chrono::Local;
-use std::env;
+use config::Config;
 use tracing::Level;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::fmt::format::Writer;
@@ -14,14 +14,18 @@ impl FormatTime for LocalTimer {
     }
 }
 
-pub fn init(debug: bool) -> WorkerGuard {
+pub fn init(cfg: &Config) -> WorkerGuard {
     // 直接初始化，采用默认的Subscriber，默认只输出INFO、WARN、ERROR级别的日志
     // tracing_subscriber::fmt::init();
 
-    let level = if debug { Level::DEBUG } else { Level::INFO };
+    let level = if cfg.get_bool("app.debug").unwrap_or_default() {
+        Level::DEBUG
+    } else {
+        Level::INFO
+    };
 
     // 开发环境，日志输出到控制台
-    if env::var("ENV").unwrap_or(String::from("dev")) == "dev" {
+    if cfg.get_string("app.env").unwrap_or(String::from("dev")) == "dev" {
         let (non_blocking, guard) = tracing_appender::non_blocking(std::io::stdout());
 
         tracing_subscriber::fmt()
@@ -37,12 +41,14 @@ pub fn init(debug: bool) -> WorkerGuard {
         return guard;
     }
 
-    let log_path = env::var("LOG_PATH").unwrap_or(String::from("logs"));
-
     // 使用tracing_appender，指定日志的输出目标位置
     // 参考: https://docs.rs/tracing-appender/0.2.0/tracing_appender/
     // 如果不是在main函数中，guard必须返回到main()函数中，否则不输出任何信息到日志文件
-    let file_appender = tracing_appender::rolling::daily(log_path, "tracing.log");
+    let file_appender = tracing_appender::rolling::daily(
+        cfg.get_string("log.path").unwrap_or(String::from("logs")),
+        cfg.get_string("log.filename")
+            .unwrap_or(String::from("tracing.log")),
+    );
     let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
     // 初始化并设置日志格式(定制和筛选日志)

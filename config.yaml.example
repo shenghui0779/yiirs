@@ -1,0 +1,16 @@
+app:
+  env: dev
+  port: 8000
+  debug: true
+db:
+  dsn: mysql://username:password@127.0.0.1:3306/dbname
+  min_conns: 10
+  max_conns: 20
+  conn_timeout: 10
+  idle_timeout: 300
+  max_lifetime: 600
+redis:
+  dsn: redis://username:password@127.0.0.1:6379/db
+log:
+  path: logs
+  filename: tracing.log

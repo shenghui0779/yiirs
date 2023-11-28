@@ -5,10 +5,13 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use crate::{config, result::response::ApiErr, util::auth::Identity};
+use crate::{
+    result::response::ApiErr,
+    util::{auth::Identity, AppState},
+};
 
 pub async fn handle<B>(
-    State(state): State<config::AppState>,
+    State(state): State<AppState>,
     request: Request<B>,
     next: Next<B>,
 ) -> Response {

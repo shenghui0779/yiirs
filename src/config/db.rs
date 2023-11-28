@@ -1,38 +1,31 @@
-use std::{env, time::Duration};
+use std::time::Duration;
 
+use config::Config;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 
-pub async fn init(debug: bool) -> DatabaseConnection {
-    let dsn = env::var("DATABASE_URL").expect("缺少配置：DATABASE_URL");
-    let min_conns = env::var("DB_MIN_CONNS")
-        .expect("缺少配置：DB_MIN_CONNS")
-        .parse::<u32>()
-        .expect("配置DB_MIN_CONNS必须为整数");
-    let max_conns = env::var("DB_MAX_CONNS")
-        .expect("缺少配置：DB_MAX_CONNS")
-        .parse::<u32>()
-        .expect("配置DB_MAX_CONNS必须为整数");
-    let conn_timeout = env::var("DB_CONN_TIMEOUT")
-        .expect("缺少配置：DB_CONN_TIMEOUT")
-        .parse::<u64>()
-        .expect("配置DB_CONN_TIMEOUT必须为整数");
-    let idle_timeout = env::var("DB_IDLE_TIMEOUT")
-        .expect("缺少配置：DB_IDLE_TIMEOUT")
-        .parse::<u64>()
-        .expect("配置DB_IDLE_TIMEOUT必须为整数");
-    let max_lifetime = env::var("DB_MAX_LIFETIME")
-        .expect("缺少配置：DB_MAX_LIFETIME")
-        .parse::<u64>()
-        .expect("配置DB_MAX_LIFETIME必须为整数");
+pub async fn init(cfg: &Config) -> DatabaseConnection {
+    let mut opt = ConnectOptions::new(cfg.get_string("db.dsn").expect("缺少DSN配置"));
 
-    let mut opt = ConnectOptions::new(dsn);
+    opt.min_connections(cfg.get_int("db.min_conns").unwrap_or(10) as u32)
+        .max_connections(cfg.get_int("db.max_conns").unwrap_or(10) as u32)
+        .connect_timeout(Duration::from_secs(
+            cfg.get_int("db.conn_timeout").unwrap_or(10) as u64,
+        ))
+        .idle_timeout(Duration::from_secs(
+            cfg.get_int("db.idle_timeout").unwrap_or(300) as u64,
+        ))
+        .max_lifetime(Duration::from_secs(
+            cfg.get_int("db.max_lifetime").unwrap_or(600) as u64,
+        ))
+        .sqlx_logging(cfg.get_bool("app.debug").unwrap_or_default());
 
-    opt.min_connections(min_conns)
-        .max_connections(max_conns)
-        .connect_timeout(Duration::from_secs(conn_timeout))
-        .idle_timeout(Duration::from_secs(idle_timeout))
-        .max_lifetime(Duration::from_secs(max_lifetime))
-        .sqlx_logging(debug);
+    let conn = Database::connect(opt)
+        .await
+        .unwrap_or_else(|e| panic!("数据库连接失败：{}", e));
+    let _ = conn
+        .ping()
+        .await
+        .is_err_and(|e| panic!("数据库连接失败：{}", e));
 
-    Database::connect(opt).await.unwrap()
+    conn
 }
