@@ -95,7 +95,7 @@ impl<'a> ECB<'a> {
 }
 
 // AES-GCM
-// GCM(key, iv)
+// GCM(key, nonce) -> (cipher, tag)
 #[allow(dead_code)]
 pub struct GCM<'a>(pub &'a [u8], pub &'a [u8]);
 
