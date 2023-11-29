@@ -1,13 +1,12 @@
 [package]
 name = "api-tpl-rs"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-dotenv = "0.15"
 config = "0.13"
 thiserror = "1.0"
 anyhow = "1.0"
@@ -35,9 +34,12 @@ sea-orm = { version = "0.12", features = [
     "debug-print",
 ] }
 redis = { version = "0.23", features = ["tokio-comp"] }
-hyper = "0.14"
-tower-http = { version = "0.4", features = ["trace"] }
-axum = { version = "0.6", features = ["headers", "macros"] }
-axum-extra = "0.8"
+hyper = "1.0"
+http = "1.0"
+http-body = "1.0"
+http-body-util = "0.1"
+tower-http = { version = "0.5", features = ["trace"] }
+axum = { version = "0.7", features = ["macros"] }
+axum-extra = "0.9"
 ulid = "1.1"
 validator = { version = "0.16", features = ["derive"] }

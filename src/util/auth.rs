@@ -1,7 +1,6 @@
-use std::env;
-
 use anyhow::{anyhow, Result};
 use base64::{prelude::BASE64_STANDARD, Engine};
+use config::Config;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 
@@ -37,7 +36,7 @@ impl Identity {
         }
     }
 
-    pub fn from_auth_token(token: String) -> Self {
+    pub fn from_auth_token(cfg: &Config, token: String) -> Self {
         let cipher = match BASE64_STANDARD.decode(token) {
             Err(err) => {
                 tracing::error!(error = ?err, "err invalid auth_token");
@@ -46,9 +45,9 @@ impl Identity {
             Ok(v) => v,
         };
 
-        let secret = match env::var("API_SECRET") {
+        let secret = match cfg.get_string("app.secret") {
             Err(err) => {
-                tracing::error!(error = ?err, "err missing env(API_SECRET)");
+                tracing::error!(error = ?err, "err missing config(app.secret)");
                 return Identity::empty();
             }
             Ok(v) => v,
@@ -72,8 +71,8 @@ impl Identity {
         }
     }
 
-    pub fn to_auth_token(&self) -> Result<String> {
-        let secret = env::var("API_SECRET")?;
+    pub fn to_auth_token(&self, cfg: &Config) -> Result<String> {
+        let secret = cfg.get_string("app.secret")?;
         let key = secret.as_bytes();
 
         let plain = serde_json::to_vec(self)?;

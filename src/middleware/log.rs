@@ -2,15 +2,17 @@ use std::collections::HashMap;
 
 use axum::{
     body::Body,
-    http::{header::CONTENT_TYPE, Request},
+    extract::Request,
+    http::header::CONTENT_TYPE,
     middleware::Next,
     response::{IntoResponse, Response},
 };
+use http_body_util::BodyExt;
 use hyper::HeaderMap;
 
 use crate::{result::response::ApiErr, util::auth::Identity};
 
-pub async fn handle<B>(request: Request<Body>, next: Next<Body>) -> Response {
+pub async fn handle(request: Request, next: Next) -> Response {
     let enter_time = chrono::Local::now();
     let req_method = request.method().to_string();
     let req_uri = request.uri().to_string();
@@ -63,10 +65,7 @@ fn header_to_string(h: &HeaderMap) -> String {
     }
 }
 
-async fn drain_body(
-    request: Request<Body>,
-    next: Next<Body>,
-) -> Result<(Response, Option<String>), ApiErr> {
+async fn drain_body(request: Request, next: Next) -> Result<(Response, Option<String>), ApiErr> {
     let ok = match request
         .headers()
         .get(CONTENT_TYPE)
@@ -91,8 +90,8 @@ async fn drain_body(
     let (parts, body) = request.into_parts();
 
     // this wont work if the body is an long running stream
-    let bytes = match hyper::body::to_bytes(body).await {
-        Ok(b) => b,
+    let bytes = match body.collect().await {
+        Ok(v) => v.to_bytes(),
         Err(err) => {
             tracing::error!(error = ?err, "err parse request body");
             return Err(ApiErr::ErrSystem(None));

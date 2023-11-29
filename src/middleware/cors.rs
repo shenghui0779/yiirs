@@ -1,27 +1,28 @@
 use axum::{
-    headers::HeaderName,
-    http::{HeaderMap, HeaderValue, Method, Request, StatusCode},
+    extract::Request,
+    http::{HeaderMap, HeaderValue, Method, StatusCode},
     middleware::Next,
     response::{IntoResponse, Response},
 };
+use http::header::{
+    ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS,
+    ACCESS_CONTROL_ALLOW_ORIGIN,
+};
 
-pub async fn handle<B>(request: Request<B>, next: Next<B>) -> Response {
+pub async fn handle(request: Request, next: Next) -> Response {
     let mut cors_headers = HeaderMap::new();
 
+    cors_headers.insert(ACCESS_CONTROL_ALLOW_ORIGIN, HeaderValue::from_static("*"));
     cors_headers.insert(
-        HeaderName::from_static("access-control-allow-origin"),
-        HeaderValue::from_static("*"),
-    );
-    cors_headers.insert(
-        HeaderName::from_static("access-control-allow-credentials"),
+        ACCESS_CONTROL_ALLOW_CREDENTIALS,
         HeaderValue::from_static("true"),
     );
     cors_headers.insert(
-        HeaderName::from_static("access-control-allow-methods"),
+        ACCESS_CONTROL_ALLOW_METHODS,
         HeaderValue::from_static("GET, POST, PUT, DELETE, OPTIONS"),
     );
     cors_headers.insert(
-        HeaderName::from_static("access-control-allow-headers"),
+        ACCESS_CONTROL_ALLOW_HEADERS,
         HeaderValue::from_static("content-type, authorization, withCredentials"),
     );
 

@@ -2,6 +2,7 @@ app:
   env: dev
   port: 8000
   debug: true
+  secret: 3f4e25e75c08dbf60ad6533c50167ce3
 db:
   dsn: mysql://username:password@127.0.0.1:3306/dbname
   min_conns: 10

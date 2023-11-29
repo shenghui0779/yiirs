@@ -1,6 +1,5 @@
 use axum::{
-    extract::State,
-    http::Request,
+    extract::{Request, State},
     middleware::Next,
     response::{IntoResponse, Response},
 };
@@ -10,16 +9,16 @@ use crate::{
     util::{auth::Identity, AppState},
 };
 
-pub async fn handle<B>(
-    State(state): State<AppState>,
-    request: Request<B>,
-    next: Next<B>,
-) -> Response {
-    match request.extensions().get::<Identity>() {
+pub async fn handle(State(state): State<AppState>, request: Request, next: Next) -> Response {
+    let identity = request.extensions().get::<Identity>();
+
+    match identity {
         None => return ApiErr::ErrAuth(None).into_response(),
-        Some(identity) => match identity.check(&state.db).await {
+        Some(v) => match v.check(&state.db).await {
+            Ok(_) => (),
             Err(err) => return ApiErr::ErrAuth(Some(err.to_string())).into_response(),
-            Ok(_) => next.run(request).await,
         },
     }
+
+    next.run(request).await
 }

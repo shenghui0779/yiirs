@@ -29,10 +29,16 @@ async fn serve(state: AppState) {
         state.cfg.get_int("app.port").unwrap_or(8000) as u16,
     ));
 
+    let listener = tokio::net::TcpListener::bind(format!(
+        "0.0.0.0:{}",
+        state.cfg.get_int("app.port").unwrap_or(8000)
+    ))
+    .await
+    .unwrap();
+
     tracing::debug!("listening on {}", addr);
 
-    axum::Server::bind(&addr)
-        .serve(router::app::init(state).into_make_service())
+    axum::serve(listener, router::app::init(state))
         .await
         .unwrap();
 }

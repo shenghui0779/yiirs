@@ -67,14 +67,14 @@ pub async fn login(
     let now = chrono::Local::now().timestamp();
     let login_token = md5(format!("auth.{}.{}.{}", model.id, now, helper::nonce(16)).as_bytes());
 
-    let auth_token = match Identity::new(model.id, model.role, login_token.clone()).to_auth_token()
-    {
-        Err(err) => {
-            tracing::error!(error = ?err, "err identity encrypt");
-            return Err(ApiErr::ErrSystem(None));
-        }
-        Ok(v) => v,
-    };
+    let auth_token =
+        match Identity::new(model.id, model.role, login_token.clone()).to_auth_token(&state.cfg) {
+            Err(err) => {
+                tracing::error!(error = ?err, "err identity encrypt");
+                return Err(ApiErr::ErrSystem(None));
+            }
+            Ok(v) => v,
+        };
 
     let am = account::ActiveModel {
         login_at: Set(now),

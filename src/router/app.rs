@@ -1,7 +1,6 @@
 use axum::{
     body::Body,
     http::Request,
-    middleware as axum_middleware,
     routing::{get, post},
     Router,
 };
@@ -24,7 +23,7 @@ pub fn init(state: AppState) -> Router {
         .route("/accounts/:account_id", get(account::info))
         .route("/projects", get(project::list).post(project::create))
         .route("/projects/:project_id", get(project::detail))
-        .layer(axum_middleware::from_fn_with_state(
+        .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             middleware::auth::handle,
         ));
@@ -32,9 +31,12 @@ pub fn init(state: AppState) -> Router {
     Router::new()
         .route("/", get(|| async { "☺ welcome to Rust app" }))
         .nest("/v1", open.merge(auth))
-        .layer(axum_middleware::from_fn(middleware::log::handle::<Body>))
-        .layer(axum_middleware::from_fn(middleware::identity::handle))
-        .layer(axum_middleware::from_fn(middleware::cors::handle))
+        .layer(axum::middleware::from_fn(middleware::log::handle))
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            middleware::identity::handle,
+        ))
+        .layer(axum::middleware::from_fn(middleware::cors::handle))
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &Request<Body>| {
                 let req_id = match request
@@ -49,6 +51,6 @@ pub fn init(state: AppState) -> Router {
                 tracing::error_span!("request_id", id = req_id)
             }),
         )
-        .layer(axum_middleware::from_fn(middleware::req_id::handle))
+        .layer(axum::middleware::from_fn(middleware::req_id::handle))
         .with_state(state)
 }
