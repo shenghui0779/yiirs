@@ -19,4 +19,4 @@ EXPOSE 8000
 
 ENTRYPOINT ["./api_tpl"]
 
-CMD ["/data/.env"]
+CMD ["/data/config.yaml"]
