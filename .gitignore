@@ -23,5 +23,5 @@
 *.log.*
 
 .env
-config.yaml
 *.http
+config.toml

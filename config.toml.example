@@ -1,0 +1,20 @@
+[app]
+env = "dev"
+port = 8000
+debug = true
+secret = "3f4e25e75c08dbf60ad6533c50167ce3"
+
+[db]
+dsn = "mysql://root:xuyun@520@127.0.0.1:3306/demo_rs"
+min_conns = 10
+max_conns = 20
+conn_timeout = 10
+idle_timeout = 300
+max_lifetime = 600
+
+[redis]
+dsn = "redis://127.0.0.1:6379/0"
+
+[log]
+path = "logs"
+filename = "tracing.log"
