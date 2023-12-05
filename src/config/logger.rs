@@ -18,6 +18,7 @@ pub fn init(cfg: Option<&Config>) -> WorkerGuard {
     // 直接初始化，采用默认的Subscriber，默认只输出INFO、WARN、ERROR级别的日志
     // tracing_subscriber::fmt::init();
 
+    // guard必须返回到main()函数中，否则不输出任何信息到日志文件
     let (level, (non_blocking, guard)) = match cfg {
         Some(cfg) => {
             let level = if cfg.get_bool("app.debug").unwrap_or_default() {
@@ -26,7 +27,6 @@ pub fn init(cfg: Option<&Config>) -> WorkerGuard {
                 Level::INFO
             };
 
-            // guard必须返回到main()函数中，否则不输出任何信息到日志文件
             let appender = if cfg.get_string("app.env").unwrap_or(String::from("dev")) == "dev" {
                 // 开发环境，日志输出到控制台
                 tracing_appender::non_blocking(std::io::stdout())
