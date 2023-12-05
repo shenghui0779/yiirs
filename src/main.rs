@@ -12,6 +12,7 @@ mod util;
 async fn main() {
     let matches = cmd::cli().get_matches();
 
+    // _guard 必须在 main 函数中才能使日志生效
     match matches.subcommand() {
         Some(("serve", sub_matches)) => {
             let (state, _guard) =
