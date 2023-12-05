@@ -17,7 +17,7 @@ pub async fn init(cfg_file: &String) -> (AppState, WorkerGuard) {
         .build()
         .unwrap_or_else(|e| panic!("配置文件加载失败：{}", e));
 
-    let _guard = logger::init(&cfg);
+    let _guard = logger::init(Some(&cfg));
     let db = db::init(&cfg).await;
     let redis = redis::init(&cfg);
 
