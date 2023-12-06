@@ -4,7 +4,7 @@ pub mod server;
 
 pub fn cli() -> Command {
     Command::new("api-tpl-rs")
-        .about("rust api template")
+        .about("rust api service - build with tokio | clap | axum | sea-orm | tracing")
         .version("1.1.0")
         .subcommand_required(false)
         .arg_required_else_help(true)
