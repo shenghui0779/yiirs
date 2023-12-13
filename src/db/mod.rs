@@ -3,6 +3,8 @@ use std::time::Duration;
 use config::Config;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 
+pub mod entity;
+
 pub async fn init(cfg: &Config) -> DatabaseConnection {
     let mut opt = ConnectOptions::new(cfg.get_string("db.dsn").expect("缺少DSN配置"));
 

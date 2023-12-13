@@ -9,7 +9,7 @@ use validator::Validate;
 use crate::crypto::hash::md5;
 use crate::util::{helper, AppState};
 use crate::{
-    entity::{account, prelude::*},
+    db::entity::{account, prelude::*},
     result::{
         rejection::IRejection,
         response::{ApiErr, ApiOK, Result},

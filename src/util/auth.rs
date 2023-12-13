@@ -4,7 +4,7 @@ use config::Config;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 
-use crate::{crypto::aes::CBC, entity::prelude::Account};
+use crate::{crypto::aes::CBC, db::entity::prelude::Account};
 
 #[allow(dead_code)]
 pub enum Role {

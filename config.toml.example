@@ -15,6 +15,9 @@ max_lifetime = 600
 [redis]
 dsn = "redis://127.0.0.1:6379/0"
 
+[redis-cluster]
+nodes = ["redis://127.0.0.1:6379/0"]
+
 [log]
 path = "logs"
 filename = "tracing.log"

@@ -16,7 +16,7 @@ pub async fn serve(state: AppState) {
     .await
     .unwrap();
 
-    tracing::debug!("listening on {}", addr);
+    tracing::info!("listening on {}", addr);
 
     axum::serve(listener, router::app::init(state))
         .await

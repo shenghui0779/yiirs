@@ -12,7 +12,8 @@
 - 参数验证器使用 [validator](https://github.com/Keats/validator)
 - 包含基础的登录授权功能
 - 包含 认证、请求日志、跨域 中间价
-- 包含 AES、Hash 等实用的工具方法
+- 包含基于 Redis 的简单分布式锁
+- 包含 AES、Hash、时间格式化 等实用的工具方法
 - 简单好用的 API Result 统一输出方式
 
 #### 本地运行
