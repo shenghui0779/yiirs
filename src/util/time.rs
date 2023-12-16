@@ -7,6 +7,7 @@ pub enum Layout<'a> {
     DateTime(Option<&'a str>),
 }
 
+// 默认格式：%Y-%m-%d %H:%M:%S
 impl<'a> Layout<'a> {
     pub fn to_str(self) -> &'a str {
         match self {
@@ -21,7 +22,7 @@ pub struct Format<'a>(pub Layout<'a>);
 
 #[allow(dead_code)]
 impl<'a> Format<'a> {
-    // Unix时间戳格式化 (%Y-%m-%d %H:%M:%S)
+    // Unix时间戳格式化
     pub fn to_string(self, timestamp: i64) -> String {
         let Format(layout) = self;
         let timezone = FixedOffset::east_opt(8 * 3600).unwrap();
@@ -42,7 +43,7 @@ impl<'a> Format<'a> {
         }
     }
 
-    // 日期转Unix时间戳 (%Y-%m-%d %H:%M:%S)
+    // 日期转Unix时间戳
     pub fn to_timestamp(self, datetime: &str) -> i64 {
         let Format(layout) = self;
 
