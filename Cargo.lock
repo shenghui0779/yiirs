@@ -148,7 +148,6 @@ dependencies = [
  "hyper",
  "library",
  "log",
- "rand",
  "redis",
  "sea-orm",
  "serde",

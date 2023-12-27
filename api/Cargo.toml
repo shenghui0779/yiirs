@@ -9,7 +9,6 @@ edition = "2021"
 tokio = { version = "1", features = ["full"] }
 config = "0.13"
 anyhow = "1.0"
-rand = "0.8"
 base64 = "0.21"
 chrono = "0.4"
 serde = { version = "1.0", features = ["derive"] }
