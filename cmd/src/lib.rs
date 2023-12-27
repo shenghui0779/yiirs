@@ -1,4 +1,7 @@
-use clap::{Arg, Command};
+use clap::Command;
+
+pub mod hello;
+pub mod serve;
 
 pub fn cli() -> Command {
     Command::new("api-tpl-rs")
@@ -7,15 +10,6 @@ pub fn cli() -> Command {
         .subcommand_required(false)
         .arg_required_else_help(true)
         .author("shenghui0779")
-        .subcommand(
-            Command::new("serve").about("Run app server").arg(
-                Arg::new("FILE")
-                    .long("config")
-                    .short('C')
-                    .help("set config file")
-                    .required(false)
-                    .default_value("config.toml"),
-            ),
-        )
-        .subcommand(Command::new("hello").about("Example subcommand"))
+        .subcommand(serve::cmd())
+        .subcommand(hello::cmd())
 }
