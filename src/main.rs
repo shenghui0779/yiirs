@@ -1,15 +1,3 @@
-mod cmd;
-mod config;
-mod crypto;
-mod db;
-mod logger;
-mod middleware;
-mod redis;
-mod result;
-mod router;
-mod service;
-mod util;
-
 #[tokio::main]
 async fn main() {
     let matches = cmd::cli().get_matches();
@@ -18,9 +6,10 @@ async fn main() {
     match matches.subcommand() {
         // Command: serve
         Some(("serve", sub_matches)) => {
-            let cfg = config::init(sub_matches.get_one::<String>("FILE").unwrap());
-            let _guard = logger::init(Some(&cfg));
-            cmd::server::serve(util::app_state(cfg).await).await;
+            let cfg = setting::config::init(sub_matches.get_one::<String>("FILE").unwrap());
+            let _guard = setting::logger::init(Some(&cfg));
+
+            api::serve(cfg).await;
         }
         // Command: hello
         Some(("hello", _sub_matches)) => println!("hello world"),

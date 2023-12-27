@@ -5,46 +5,13 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[workspace]
+members = [".", "api", "cmd", "setting", "crypto", "entity", "util"]
+
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-clap = { version = "4.4", features = ["cargo"] }
-config = "0.13"
-thiserror = "1.0"
-anyhow = "1.0"
-rand = "0.8"
-const-hex = "1.10"
-openssl = "0.10"
-digest = "0.10"
-md-5 = "0.10"
-sha1 = "0.10"
-sha2 = "0.10"
-hmac = "0.12"
-rsa = "0.9"
-base64 = "0.21"
-chrono = "0.4"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-log = "0.4"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["json"] }
-tracing-appender = "0.2"
-sea-orm = { version = "0.12", features = [
-    "sqlx-mysql",
-    "runtime-tokio-rustls",
-    "macros",
-    "debug-print",
-] }
-redis = { version = "0.23", features = [
-    "cluster",
-    "cluster-async",
-    "tokio-comp",
-] }
-hyper = "1.0"
-http = "1.0"
-http-body = "1.0"
-http-body-util = "0.1"
-tower-http = { version = "0.5", features = ["trace"] }
-axum = { version = "0.7", features = ["macros"] }
-axum-extra = "0.9"
-ulid = "1.1"
-validator = { version = "0.16", features = ["derive"] }
+
+# workspace modules
+api = { path = "api" }
+cmd = { path = "cmd" }
+setting = { path = "setting" }
