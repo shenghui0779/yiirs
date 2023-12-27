@@ -7,7 +7,7 @@ description = "API project template for Rust"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace]
-members = [".", "api", "cmd", "library", "entity", "service"]
+members = [".", "api", "cmd", "entity", "library", "service"]
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
