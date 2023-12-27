@@ -8,7 +8,7 @@ async fn main() {
     match matches.subcommand() {
         // Command: serve
         Some((cmd::serve::NAME, sub_matches)) => {
-            let cfg = config::init(sub_matches.get_one::<String>("FILE").unwrap());
+            let cfg = config::init(sub_matches.get_one::<String>(cmd::serve::ARG_FILE).unwrap());
             let _guard = logger::init(Some(&cfg));
 
             api::serve(cfg).await;
