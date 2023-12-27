@@ -1,3 +1,5 @@
+use library::core::{config, logger};
+
 #[tokio::main]
 async fn main() {
     let matches = cmd::cli().get_matches();
@@ -6,8 +8,8 @@ async fn main() {
     match matches.subcommand() {
         // Command: serve
         Some(("serve", sub_matches)) => {
-            let cfg = setting::config::init(sub_matches.get_one::<String>("FILE").unwrap());
-            let _guard = setting::logger::init(Some(&cfg));
+            let cfg = config::init(sub_matches.get_one::<String>("FILE").unwrap());
+            let _guard = logger::init(Some(&cfg));
 
             api::serve(cfg).await;
         }

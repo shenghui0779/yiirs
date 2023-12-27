@@ -7,9 +7,8 @@ use axum::{
 use tower_http::trace::TraceLayer;
 
 use crate::{
-    middleware,
-    service::{account, auth, project},
-    AppState,
+    controller::{account, auth, project},
+    middleware, AppState,
 };
 
 pub fn init(state: AppState) -> Router {

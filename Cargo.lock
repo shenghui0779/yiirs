@@ -141,27 +141,24 @@ dependencies = [
  "base64 0.21.5",
  "chrono",
  "config",
- "crypto",
  "entity",
  "http",
  "http-body",
  "http-body-util",
  "hyper",
+ "library",
  "log",
  "rand",
  "redis",
- "result",
  "sea-orm",
  "serde",
  "serde_json",
- "setting",
  "tokio",
  "tower-http",
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
  "ulid",
- "util",
  "validator",
 ]
 
@@ -171,7 +168,7 @@ version = "1.1.0"
 dependencies = [
  "api",
  "cmd",
- "setting",
+ "library",
  "tokio",
 ]
 
@@ -661,22 +658,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3a430a770ebd84726f584a90ee7f020d28db52c6d02138900f22341f866d39c"
 dependencies = [
  "cfg-if",
-]
-
-[[package]]
-name = "crypto"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "base64 0.21.5",
- "const-hex",
- "digest",
- "hmac",
- "md-5",
- "openssl",
- "rand",
- "sha1",
- "sha2",
 ]
 
 [[package]]
@@ -1283,6 +1264,36 @@ name = "libm"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ec2a862134d2a7d32d7983ddcdd1c4923530833c9f2ea1a44fc5fa473989058"
+
+[[package]]
+name = "library"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "axum-extra",
+ "base64 0.21.5",
+ "chrono",
+ "config",
+ "const-hex",
+ "digest",
+ "hmac",
+ "log",
+ "md-5",
+ "openssl",
+ "rand",
+ "redis",
+ "sea-orm",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2",
+ "thiserror",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+ "validator",
+]
 
 [[package]]
 name = "libsqlite3-sys"
@@ -1951,17 +1962,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "result"
-version = "0.1.0"
-dependencies = [
- "axum",
- "axum-extra",
- "serde",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
 name = "ring"
 version = "0.17.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2286,19 +2286,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "setting"
+name = "service"
 version = "0.1.0"
-dependencies = [
- "chrono",
- "config",
- "log",
- "redis",
- "sea-orm",
- "tokio",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "sha1"
@@ -3118,16 +3107,6 @@ name = "utf8parse"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
-
-[[package]]
-name = "util"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "rand",
- "redis",
- "validator",
-]
 
 [[package]]
 name = "uuid"

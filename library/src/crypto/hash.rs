@@ -52,7 +52,7 @@ mod tests {
     use sha1::Sha1;
     use sha2::{Sha224, Sha256, Sha384, Sha512, Sha512_224, Sha512_256};
 
-    use crate::hash::{hash, hmac, hmac_sha256};
+    use crate::crypto::hash::{hash, hmac, hmac_sha256};
 
     #[test]
     fn digest_hash() {

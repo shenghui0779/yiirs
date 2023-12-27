@@ -4,8 +4,8 @@ use config::Config;
 use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 
-use crypto::aes::CBC;
 use entity::prelude::Account;
+use library::crypto::aes::CBC;
 
 use super::Role;
 

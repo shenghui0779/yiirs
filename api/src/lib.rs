@@ -3,9 +3,9 @@ use redis::Client as RedisClient;
 use sea_orm::DatabaseConnection;
 
 pub mod auth;
+pub mod controller;
 pub mod middleware;
 pub mod router;
-pub mod service;
 
 #[derive(Debug, Clone)]
 pub struct AppState {
@@ -15,8 +15,8 @@ pub struct AppState {
 }
 
 async fn app_state(cfg: Config) -> AppState {
-    let db = setting::db::init(&cfg).await;
-    let redis = setting::redis::init(&cfg);
+    let db = library::core::db::init(&cfg).await;
+    let redis = library::core::redis::init(&cfg);
 
     AppState { cfg, db, redis }
 }
@@ -32,5 +32,7 @@ pub async fn serve(cfg: Config) {
 
     tracing::info!("listening on {}", addr);
 
-    axum::serve(listener, router::init(state)).await.unwrap();
+    axum::serve(listener, router::app::init(state))
+        .await
+        .unwrap();
 }

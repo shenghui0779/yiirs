@@ -2,11 +2,12 @@
 name = "api-tpl-rs"
 version = "1.1.0"
 edition = "2021"
+description = "API project template for Rust"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace]
-members = [".", "api", "cmd", "setting", "crypto", "entity", "util"]
+members = [".", "api", "cmd", "library", "entity", "service"]
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
@@ -14,4 +15,4 @@ tokio = { version = "1", features = ["full"] }
 # workspace modules
 api = { path = "api" }
 cmd = { path = "cmd" }
-setting = { path = "setting" }
+library = { path = "library" }

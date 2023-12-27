@@ -10,7 +10,7 @@ use axum::{
 use http_body_util::BodyExt;
 use hyper::HeaderMap;
 
-use result::response::ApiErr;
+use library::result::response::ApiErr;
 
 use crate::auth::identity::Identity;
 

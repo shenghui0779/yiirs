@@ -11,13 +11,13 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use crypto::hash::md5;
 use entity::{account, prelude::*};
-use result::{
+use library::crypto::hash::md5;
+use library::result::{
     rejection::IRejection,
     response::{ApiErr, ApiOK, Result},
 };
-use util::{
+use library::util::{
     helper,
     time::{self, Layout},
 };

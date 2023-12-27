@@ -4,7 +4,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use result::response::ApiErr;
+use library::result::response::ApiErr;
 
 use crate::{auth::identity::Identity, AppState};
 
