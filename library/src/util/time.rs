@@ -1,6 +1,5 @@
 use chrono::prelude::*;
 
-#[allow(dead_code)]
 pub enum Layout<'a> {
     Date(Option<&'a str>),
     Time(Option<&'a str>),
@@ -20,7 +19,6 @@ impl<'a> Layout<'a> {
 
 pub struct Format<'a>(pub Layout<'a>);
 
-#[allow(dead_code)]
 impl<'a> Format<'a> {
     // Unix时间戳格式化
     pub fn to_string(self, timestamp: i64) -> String {

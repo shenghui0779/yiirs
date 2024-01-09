@@ -14,7 +14,6 @@ impl FormatTime for LocalTimer {
     }
 }
 
-#[allow(dead_code)]
 pub fn init(cfg: Option<&Config>) -> WorkerGuard {
     // 直接初始化，采用默认的Subscriber，默认只输出INFO、WARN、ERROR级别的日志
     // tracing_subscriber::fmt::init();

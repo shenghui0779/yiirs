@@ -1,4 +1,4 @@
-use library::core::{config, logger};
+use library::core::{cfg, db, logger};
 
 #[tokio::main]
 async fn main() {
@@ -8,10 +8,15 @@ async fn main() {
     match matches.subcommand() {
         // Command: serve
         Some((cmd::serve::NAME, sub_matches)) => {
-            let cfg = config::init(sub_matches.get_one::<String>(cmd::serve::ARG_FILE).unwrap());
-            let _guard = logger::init(Some(&cfg));
+            // 初始化配置
+            cfg::init(sub_matches.get_one::<String>(cmd::serve::ARG_FILE).unwrap());
+            // 初始化日志
+            let _guard = logger::init(Some(cfg::config()));
+            // 初始化数据库
+            db::init(cfg::config()).await;
 
-            api::serve(cfg).await;
+            // 启动服务
+            api::serve().await;
         }
         // Command: hello
         Some((cmd::hello::NAME, _sub_matches)) => println!("hello world"),

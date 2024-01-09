@@ -1,4 +1,4 @@
-FROM rust:1.67 as builder
+FROM rust:1.70 as builder
 
 WORKDIR /api_rs
 
@@ -19,4 +19,4 @@ EXPOSE 8000
 
 ENTRYPOINT ["./api_rs"]
 
-CMD ["/data/config.yaml"]
+CMD ["serve", "--config", "/data/config.yaml"]

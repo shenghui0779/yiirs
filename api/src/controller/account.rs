@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Path, Query},
     Extension, Json,
 };
 use axum_extra::extract::WithRejection;
@@ -12,7 +12,6 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use entity::{account, prelude::*};
-use library::crypto::hash::md5;
 use library::result::{
     rejection::IRejection,
     response::{ApiErr, ApiOK, Result},
@@ -21,11 +20,9 @@ use library::util::{
     helper,
     time::{self, Layout},
 };
+use library::{core::db, crypto::hash::md5};
 
-use crate::{
-    auth::{identity::Identity, Role},
-    AppState,
-};
+use crate::auth::{identity::Identity, Role};
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
 pub struct ParamsCreate {
@@ -38,7 +35,6 @@ pub struct ParamsCreate {
 }
 
 pub async fn create(
-    State(state): State<AppState>,
     Extension(identity): Extension<Identity>,
     WithRejection(Json(params), _): IRejection<Json<ParamsCreate>>,
 ) -> Result<ApiOK<()>> {
@@ -52,7 +48,7 @@ pub async fn create(
 
     match Account::find()
         .filter(account::Column::Username.eq(params.username.clone()))
-        .count(&state.db)
+        .count(db::conn())
         .await
     {
         Err(err) => {
@@ -82,7 +78,7 @@ pub async fn create(
         ..Default::default()
     };
 
-    if let Err(err) = Account::insert(model).exec(&state.db).await {
+    if let Err(err) = Account::insert(model).exec(db::conn()).await {
         tracing::error!(error = ?err, "err insert account");
 
         return Err(ApiErr::ErrSystem(None));
@@ -103,7 +99,6 @@ pub struct RespInfo {
 }
 
 pub async fn info(
-    State(state): State<AppState>,
     Extension(identity): Extension<Identity>,
     Path(account_id): Path<u64>,
 ) -> Result<ApiOK<RespInfo>> {
@@ -111,7 +106,7 @@ pub async fn info(
         return Err(ApiErr::ErrPerm(None));
     }
 
-    let model = match Account::find_by_id(account_id).one(&state.db).await {
+    let model = match Account::find_by_id(account_id).one(db::conn()).await {
         Err(err) => {
             tracing::error!(error = ?err, "err find account");
             return Err(ApiErr::ErrSystem(None));
@@ -142,7 +137,6 @@ pub struct RespList {
 }
 
 pub async fn list(
-    State(state): State<AppState>,
     Extension(identity): Extension<Identity>,
     Query(query): Query<HashMap<String, String>>,
 ) -> Result<ApiOK<RespList>> {
@@ -169,7 +163,7 @@ pub async fn list(
             .select_only()
             .column_as(account::Column::Id.count(), "count")
             .into_tuple::<i64>()
-            .one(&state.db)
+            .one(db::conn())
             .await
         {
             Err(err) => {
@@ -184,7 +178,7 @@ pub async fn list(
         .order_by(account::Column::Id, Order::Desc)
         .offset(offset)
         .limit(limit)
-        .all(&state.db)
+        .all(db::conn())
         .await
     {
         Err(err) => {

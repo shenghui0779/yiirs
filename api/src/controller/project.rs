@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Path, Query},
     Extension, Json,
 };
 use axum_extra::extract::WithRejection;
@@ -12,19 +12,19 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use library::result::{
-    rejection::IRejection,
-    response::{ApiErr, ApiOK, Result},
-};
 use library::util::{
     helper,
     time::{self, Layout},
 };
-
-use crate::{
-    auth::{identity::Identity, Role},
-    AppState,
+use library::{
+    core::db,
+    result::{
+        rejection::IRejection,
+        response::{ApiErr, ApiOK, Result},
+    },
 };
+
+use crate::auth::{identity::Identity, Role};
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
 pub struct ParamsCreate {
@@ -36,7 +36,6 @@ pub struct ParamsCreate {
 }
 
 pub async fn create(
-    State(state): State<AppState>,
     Extension(identity): Extension<Identity>,
     WithRejection(Json(params), _): IRejection<Json<ParamsCreate>>,
 ) -> Result<ApiOK<()>> {
@@ -47,7 +46,7 @@ pub async fn create(
     // 校验编号唯一性
     match Project::find()
         .filter(project::Column::Code.eq(params.code.clone()))
-        .count(&state.db)
+        .count(db::conn())
         .await
     {
         Err(err) => {
@@ -73,7 +72,7 @@ pub async fn create(
         ..Default::default()
     };
 
-    if let Err(err) = Project::insert(am).exec(&state.db).await {
+    if let Err(err) = Project::insert(am).exec(db::conn()).await {
         tracing::error!(error = ?err, "err insert project");
         return Err(ApiErr::ErrSystem(None));
     }
@@ -97,7 +96,6 @@ pub struct RespList {
 }
 
 pub async fn list(
-    State(state): State<AppState>,
     Extension(identity): Extension<Identity>,
     Query(query): Query<HashMap<String, String>>,
 ) -> Result<ApiOK<RespList>> {
@@ -136,7 +134,7 @@ pub async fn list(
             .select_only()
             .column_as(project::Column::Id.count(), "count")
             .into_tuple::<i64>()
-            .one(&state.db)
+            .one(db::conn())
             .await
         {
             Err(err) => {
@@ -151,7 +149,7 @@ pub async fn list(
         .order_by(project::Column::Id, Order::Desc)
         .offset(offset)
         .limit(limit)
-        .all(&state.db)
+        .all(db::conn())
         .await
     {
         Err(err) => {
@@ -198,13 +196,12 @@ pub struct ProjAccount {
 }
 
 pub async fn detail(
-    State(state): State<AppState>,
     Extension(identity): Extension<Identity>,
     Path(project_id): Path<u64>,
 ) -> Result<ApiOK<RespDetail>> {
     let (model_proj, model_account) = match Project::find_by_id(project_id)
         .find_also_related(Account)
-        .one(&state.db)
+        .one(db::conn())
         .await
     {
         Err(err) => {

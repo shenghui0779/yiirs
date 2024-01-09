@@ -8,10 +8,10 @@ use tower_http::trace::TraceLayer;
 
 use crate::{
     controller::{account, auth, project},
-    middleware, AppState,
+    middleware,
 };
 
-pub fn init(state: AppState) -> Router {
+pub fn init() -> Router {
     // 开放
     let open = Router::new().route("/login", post(auth::login));
 
@@ -22,19 +22,13 @@ pub fn init(state: AppState) -> Router {
         .route("/accounts/:account_id", get(account::info))
         .route("/projects", get(project::list).post(project::create))
         .route("/projects/:project_id", get(project::detail))
-        .layer(axum::middleware::from_fn_with_state(
-            state.clone(),
-            middleware::auth::handle,
-        ));
+        .layer(axum::middleware::from_fn(middleware::auth::handle));
 
     Router::new()
         .route("/", get(|| async { "☺ welcome to Rust app" }))
         .nest("/v1", open.merge(auth))
         .layer(axum::middleware::from_fn(middleware::log::handle))
-        .layer(axum::middleware::from_fn_with_state(
-            state.clone(),
-            middleware::identity::handle,
-        ))
+        .layer(axum::middleware::from_fn(middleware::identity::handle))
         .layer(axum::middleware::from_fn(middleware::cors::handle))
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &Request<Body>| {
@@ -51,5 +45,4 @@ pub fn init(state: AppState) -> Router {
             }),
         )
         .layer(axum::middleware::from_fn(middleware::req_id::handle))
-        .with_state(state)
 }

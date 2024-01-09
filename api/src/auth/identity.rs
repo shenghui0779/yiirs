@@ -1,11 +1,13 @@
 use anyhow::{anyhow, Result};
 use base64::{prelude::BASE64_STANDARD, Engine};
-use config::Config;
-use sea_orm::{DatabaseConnection, EntityTrait};
+use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};
 
 use entity::prelude::Account;
-use library::crypto::aes::CBC;
+use library::{
+    core::{cfg, db},
+    crypto::aes::CBC,
+};
 
 use super::Role;
 
@@ -33,7 +35,7 @@ impl Identity {
         }
     }
 
-    pub fn from_auth_token(cfg: &Config, token: String) -> Self {
+    pub fn from_auth_token(token: String) -> Self {
         let cipher = match BASE64_STANDARD.decode(token) {
             Err(err) => {
                 tracing::error!(error = ?err, "err invalid auth_token");
@@ -42,7 +44,7 @@ impl Identity {
             Ok(v) => v,
         };
 
-        let secret = match cfg.get_string("app.secret") {
+        let secret = match cfg::config().get_string("app.secret") {
             Err(err) => {
                 tracing::error!(error = ?err, "err missing config(app.secret)");
                 return Identity::empty();
@@ -68,8 +70,8 @@ impl Identity {
         }
     }
 
-    pub fn to_auth_token(&self, cfg: &Config) -> Result<String> {
-        let secret = cfg.get_string("app.secret")?;
+    pub fn to_auth_token(&self) -> Result<String> {
+        let secret = cfg::config().get_string("app.secret")?;
         let key = secret.as_bytes();
 
         let plain = serde_json::to_vec(self)?;
@@ -99,12 +101,12 @@ impl Identity {
         false
     }
 
-    pub async fn check(&self, db: &DatabaseConnection) -> Result<()> {
+    pub async fn check(&self) -> Result<()> {
         if self.id() == 0 {
             return Err(anyhow!("未授权，请先登录"));
         }
 
-        match Account::find_by_id(self.id()).one(db).await? {
+        match Account::find_by_id(self.id()).one(db::conn()).await? {
             None => return Err(anyhow!("授权账号不存在")),
             Some(v) => {
                 if v.login_token.len() == 0 || self.t != v.login_token {

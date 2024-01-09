@@ -5,7 +5,6 @@ use openssl::symm::{decrypt_aead, encrypt_aead, Cipher, Crypter, Mode};
 // CBC(key, iv)
 pub struct CBC<'a>(pub &'a [u8], pub &'a [u8]);
 
-#[allow(dead_code)]
 impl<'a> CBC<'a> {
     fn cipher(&self) -> Result<Cipher> {
         let cipher = match self.0.len() {
@@ -49,10 +48,8 @@ impl<'a> CBC<'a> {
 
 // AES-ECB pkcs#7
 // ECB(key)
-#[allow(dead_code)]
 pub struct ECB<'a>(pub &'a [u8]);
 
-#[allow(dead_code)]
 impl<'a> ECB<'a> {
     fn cipher(&self) -> Result<Cipher> {
         let cipher = match self.0.len() {
@@ -96,10 +93,8 @@ impl<'a> ECB<'a> {
 
 // AES-GCM
 // GCM(key, nonce) -> (cipher, tag)
-#[allow(dead_code)]
 pub struct GCM<'a>(pub &'a [u8], pub &'a [u8]);
 
-#[allow(dead_code)]
 impl<'a> GCM<'a> {
     fn cipher(&self) -> Result<Cipher> {
         let cipher = match self.0.len() {

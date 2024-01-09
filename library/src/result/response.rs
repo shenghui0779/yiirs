@@ -22,7 +22,6 @@ where
     }
 }
 
-#[allow(dead_code)]
 pub enum ApiErr {
     Error(i32, String),
     ErrParams(Option<String>),

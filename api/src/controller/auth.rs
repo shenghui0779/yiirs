@@ -1,6 +1,6 @@
-use axum::extract::State;
 use axum::{Extension, Json};
 use axum_extra::extract::WithRejection;
+use library::core::db;
 use sea_orm::sea_query::Expr;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
@@ -15,7 +15,6 @@ use library::result::{
 use library::util::helper;
 
 use crate::auth::identity::Identity;
-use crate::AppState;
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
 pub struct ParamsLogin {
@@ -33,7 +32,6 @@ pub struct RespLogin {
 }
 
 pub async fn login(
-    State(state): State<AppState>,
     WithRejection(Json(params), _): IRejection<Json<ParamsLogin>>,
 ) -> Result<ApiOK<RespLogin>> {
     if let Err(err) = params.validate() {
@@ -42,7 +40,7 @@ pub async fn login(
 
     let ret = Account::find()
         .filter(account::Column::Username.eq(params.username))
-        .one(&state.db)
+        .one(db::conn())
         .await;
 
     let record = match ret {
@@ -67,14 +65,14 @@ pub async fn login(
     let now = chrono::Local::now().timestamp();
     let login_token = md5(format!("auth.{}.{}.{}", model.id, now, helper::nonce(16)).as_bytes());
 
-    let auth_token =
-        match Identity::new(model.id, model.role, login_token.clone()).to_auth_token(&state.cfg) {
-            Err(err) => {
-                tracing::error!(error = ?err, "err identity encrypt");
-                return Err(ApiErr::ErrSystem(None));
-            }
-            Ok(v) => v,
-        };
+    let auth_token = match Identity::new(model.id, model.role, login_token.clone()).to_auth_token()
+    {
+        Err(err) => {
+            tracing::error!(error = ?err, "err identity encrypt");
+            return Err(ApiErr::ErrSystem(None));
+        }
+        Ok(v) => v,
+    };
 
     let am = account::ActiveModel {
         login_at: Set(now),
@@ -86,7 +84,7 @@ pub async fn login(
     let ret_update = Account::update_many()
         .filter(account::Column::Id.eq(model.id))
         .set(am)
-        .exec(&state.db)
+        .exec(db::conn())
         .await;
 
     if let Err(err) = ret_update {
@@ -103,10 +101,7 @@ pub async fn login(
     Ok(ApiOK(Some(resp)))
 }
 
-pub async fn logout(
-    State(state): State<AppState>,
-    Extension(identity): Extension<Identity>,
-) -> Result<ApiOK<()>> {
+pub async fn logout(Extension(identity): Extension<Identity>) -> Result<ApiOK<()>> {
     if identity.id() == 0 {
         return Ok(ApiOK(None));
     }
@@ -118,7 +113,7 @@ pub async fn logout(
             account::Column::CreatedAt,
             Expr::value(chrono::Local::now().timestamp()),
         )
-        .exec(&state.db)
+        .exec(db::conn())
         .await;
 
     if let Err(err) = ret {

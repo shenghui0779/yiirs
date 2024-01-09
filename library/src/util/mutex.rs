@@ -1,6 +1,5 @@
 use redis::{AsyncCommands, Commands, ExistenceCheck::NX, SetExpiry::PX, SetOptions};
 
-#[allow(dead_code)]
 // 基于Redis的分布式锁
 pub struct Distributed<'a> {
     cli: &'a redis::Client,
@@ -9,7 +8,6 @@ pub struct Distributed<'a> {
     expire: usize,
 }
 
-#[allow(dead_code)]
 impl<'a> Distributed<'a> {
     pub fn new(
         cli: &redis::Client,
@@ -52,7 +50,6 @@ impl<'a> Distributed<'a> {
     }
 }
 
-#[allow(dead_code)]
 impl<'a> Drop for Distributed<'a> {
     fn drop(&mut self) {
         let mut conn = match self.cli.get_connection() {
