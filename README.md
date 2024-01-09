@@ -1,6 +1,6 @@
 # api-tpl-rs
 
-轻量好用的 Rust API 项目框架
+轻量好用的 Rust API 服务框架
 
 - 路由使用 [axum](https://github.com/tokio-rs/axum)
 - ORM使用 [sea-orm](https://github.com/SeaQL/sea-orm)
