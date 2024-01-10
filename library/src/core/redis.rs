@@ -2,8 +2,8 @@ use config::Config;
 use redis::{cluster::ClusterClient, Client};
 use std::{sync::OnceLock, time::Duration};
 
-pub static REDIS: OnceLock<Client> = OnceLock::new();
-pub static REDIS_CLUSTER: OnceLock<ClusterClient> = OnceLock::new();
+static REDIS: OnceLock<Client> = OnceLock::new();
+static REDIS_CLUSTER: OnceLock<ClusterClient> = OnceLock::new();
 
 pub fn init(cfg: &Config) {
     let client = Client::open(cfg.get_string("redis.dsn").expect("缺少DSN配置"))

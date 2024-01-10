@@ -3,7 +3,7 @@ use std::{sync::OnceLock, time::Duration};
 use config::Config;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 
-pub static DB: OnceLock<DatabaseConnection> = OnceLock::new();
+static DB: OnceLock<DatabaseConnection> = OnceLock::new();
 
 pub async fn init(cfg: &Config) {
     let mut opt = ConnectOptions::new(cfg.get_string("db.dsn").expect("缺少DSN配置"));
