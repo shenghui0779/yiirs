@@ -19,4 +19,4 @@ EXPOSE 8000
 
 ENTRYPOINT ["./api_rs"]
 
-CMD ["serve", "--config", "/data/config.yaml"]
+CMD ["serve", "--config", "/data/config.toml"]
