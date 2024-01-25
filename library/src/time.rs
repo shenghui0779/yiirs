@@ -74,7 +74,7 @@ impl<'a> Format<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::util::time::Layout;
+    use crate::time::Layout;
 
     use super::Format;
 

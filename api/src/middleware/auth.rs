@@ -5,8 +5,7 @@ use axum::{
 };
 
 use library::result::response::ApiErr;
-
-use crate::auth::identity::Identity;
+use service::identity::Identity;
 
 pub async fn handle(request: Request, next: Next) -> Response {
     let identity = request.extensions().get::<Identity>();

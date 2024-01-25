@@ -1,6 +1,5 @@
 use library::core::cfg;
 
-pub mod auth;
 pub mod controller;
 pub mod middleware;
 pub mod router;

@@ -1,7 +1,6 @@
 use axum::{extract::Request, middleware::Next, response::Response};
 use http::header::AUTHORIZATION;
-
-use crate::auth::identity::Identity;
+use service::identity::Identity;
 
 pub async fn handle(mut request: Request, next: Next) -> Response {
     let token = request.headers().get(AUTHORIZATION);

@@ -9,7 +9,10 @@ use library::{
     crypto::aes::CBC,
 };
 
-use super::Role;
+pub enum Role {
+    Super,
+    Normal,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Identity {

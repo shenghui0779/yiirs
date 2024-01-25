@@ -11,8 +11,7 @@ use http_body_util::BodyExt;
 use hyper::HeaderMap;
 
 use library::result::response::ApiErr;
-
-use crate::auth::identity::Identity;
+use service::identity::Identity;
 
 pub async fn handle(request: Request, next: Next) -> Response {
     let enter_time = chrono::Local::now();
