@@ -28,6 +28,12 @@ pub fn hash<D: Digest>(b: &[u8]) -> String {
     const_hex::encode(h.finalize())
 }
 
+pub fn hmac_sha1(key: &[u8], b: &[u8]) -> String {
+    let mut h = Hmac::<Sha1>::new_from_slice(key).unwrap();
+    h.update(b);
+    const_hex::encode(h.finalize().into_bytes())
+}
+
 pub fn hmac_sha256(key: &[u8], b: &[u8]) -> String {
     let mut h = Hmac::<Sha256>::new_from_slice(key).unwrap();
     h.update(b);
@@ -46,7 +52,7 @@ mod tests {
     use sha1::Sha1;
     use sha2::{Sha224, Sha256, Sha384, Sha512, Sha512_224, Sha512_256};
 
-    use crate::crypto::hash::{hash, hmac, hmac_sha256};
+    use crate::crypto::hash::{hash, hmac, hmac_sha1, hmac_sha256};
 
     #[test]
     fn digest_hash() {
@@ -114,6 +120,10 @@ mod tests {
         assert_eq!(
             hmac::<Sha512_256>(b"IIInsomnia", b"shenghui"),
             "9863f2c13c3218265d374f82605ef368d6577e4d292d122117fa07c72839b71e"
+        );
+        assert_eq!(
+            hmac_sha1(b"IIInsomnia", b"shenghui"),
+            "750583660d10fbadf8004f462aa7ef1d9f18cd91"
         );
         assert_eq!(
             hmac_sha256(b"IIInsomnia", b"shenghui"),
