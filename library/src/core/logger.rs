@@ -32,7 +32,7 @@ pub fn init(cfg: Option<&Config>) -> WorkerGuard {
                 tracing_appender::non_blocking(std::io::stdout())
             } else {
                 // 使用tracing_appender，指定日志的输出目标位置
-                // 参考: https://docs.rs/tracing-appender/0.2.0/tracing_appender/
+                // 参考: https://docs.rs/tracing-appender/latest/tracing_appender/index.html
                 tracing_appender::non_blocking(tracing_appender::rolling::daily(
                     cfg.get_string("log.path").unwrap_or(String::from("logs")),
                     cfg.get_string("log.filename")
