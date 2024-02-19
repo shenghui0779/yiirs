@@ -1,6 +1,6 @@
 # api-tpl-rs
 
-Rust API 服务框架
+Rust API 快速开发脚手架
 
 - 路由使用 [axum](https://github.com/tokio-rs/axum)
 - ORM使用 [sea-orm](https://github.com/SeaQL/sea-orm)
