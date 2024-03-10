@@ -28,7 +28,13 @@ impl<'a> Distributed<'a> {
         interval: chrono::Duration,
         timeout: chrono::Duration,
     ) -> anyhow::Result<()> {
-        let mut conn = self.cli.get_async_connection().await?;
+        let mut conn = self
+            .cli
+            .get_multiplexed_async_connection_with_timeouts(
+                std::time::Duration::from_secs(10),
+                std::time::Duration::from_secs(10),
+            )
+            .await?;
         let ended_at = chrono::Local::now() + timeout;
 
         while chrono::Local::now() < ended_at {
