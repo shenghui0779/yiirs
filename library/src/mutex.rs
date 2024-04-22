@@ -27,7 +27,7 @@ impl<'a> Distributed<'a> {
 
     // 尝试获取锁
     pub async fn try_lock(&mut self, attempts: i32) -> Result<bool, redis::RedisError> {
-        for _ in 1..attempts {
+        for _ in 0..attempts {
             match self._acquire().await {
                 Ok(v) => {
                     if v {
