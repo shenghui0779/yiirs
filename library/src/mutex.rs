@@ -3,16 +3,16 @@ use rand::Rng;
 use redis::{AsyncCommands, Commands, ExistenceCheck::NX, SetExpiry::PX, SetOptions};
 
 // 基于Redis的分布式锁
-pub struct Distributed<'a> {
+pub struct RedisLock<'a> {
     cli: &'a redis::Client,
     key: String,
     token: String,
     expire: usize,
 }
 
-impl<'a> Distributed<'a> {
-    pub fn new(cli: &redis::Client, key: String, ttl: chrono::Duration) -> Distributed {
-        Distributed {
+impl<'a> RedisLock<'a> {
+    pub fn new(cli: &redis::Client, key: String, ttl: chrono::Duration) -> RedisLock {
+        RedisLock {
             cli,
             key,
             token: String::from(""),
@@ -89,7 +89,7 @@ impl<'a> Distributed<'a> {
 }
 
 // 释放锁
-impl<'a> Drop for Distributed<'a> {
+impl<'a> Drop for RedisLock<'a> {
     fn drop(&mut self) {
         if self.token.len() == 0 {
             return;
