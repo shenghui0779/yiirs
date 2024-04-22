@@ -37,7 +37,7 @@ impl<'a> RedisLock<'a> {
                 }
                 Err(e) => return Err(e),
             }
-            let delay = rand::thread_rng().gen_range(1000..=2000);
+            let delay = rand::thread_rng().gen_range(50..=200);
             sleep(Duration::from_millis(delay)).await;
         }
 
