@@ -1,10 +1,9 @@
 use axum::{extract::Request, http::HeaderValue, middleware::Next, response::Response};
 use http::HeaderName;
-use ulid::Ulid;
+use nanoid::nanoid;
 
 pub async fn handle(mut request: Request, next: Next) -> Response {
-    let req_id = HeaderValue::from_str(&Ulid::new().to_string())
-        .unwrap_or(HeaderValue::from_static("unknown"));
+    let req_id = HeaderValue::from_str(&nanoid!(32)).unwrap_or(HeaderValue::from_static("unknown"));
 
     request
         .headers_mut()

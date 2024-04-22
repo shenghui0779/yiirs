@@ -28,6 +28,7 @@ log = "0.4"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["json"] }
 tracing-appender = "0.2"
+nanoid = "0.4"
 validator = { version = "0.16", features = ["derive"] }
 sea-orm = { version = "0.12", features = [
     "sqlx-mysql",

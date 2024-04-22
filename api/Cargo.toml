@@ -21,7 +21,7 @@ http-body-util = "0.1"
 tower-http = { version = "0.5", features = ["trace"] }
 axum = { version = "0.7", features = ["macros"] }
 axum-extra = "0.9"
-ulid = "1.1"
+nanoid = "0.4"
 validator = { version = "0.16", features = ["derive"] }
 
 # workspace modules

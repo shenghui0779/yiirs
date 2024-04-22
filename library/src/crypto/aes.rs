@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use openssl::symm::{decrypt_aead, encrypt_aead, Cipher, Crypter, Mode};
+use openssl::symm::{Cipher, Crypter, decrypt_aead, encrypt_aead, Mode};
 
 // AES-CBC pkcs#7
 // CBC(key, iv)
@@ -153,7 +153,7 @@ fn pkcs7_unpadding(data: &[u8]) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use base64::{prelude::BASE64_STANDARD, Engine};
+    use base64::{Engine, prelude::BASE64_STANDARD};
 
     use crate::crypto::aes::{CBC, ECB, GCM};
 
