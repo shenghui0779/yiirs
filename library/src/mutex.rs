@@ -1,6 +1,7 @@
 use nanoid::nanoid;
 use rand::Rng;
 use redis::{AsyncCommands, Commands, ExistenceCheck::NX, SetExpiry::PX, SetOptions};
+use tokio::time::{sleep, Duration};
 
 // 基于Redis的分布式锁
 pub struct RedisLock<'a> {
@@ -22,7 +23,7 @@ impl<'a> RedisLock<'a> {
 
     // 获取锁
     pub async fn lock(&mut self) -> Result<bool, redis::RedisError> {
-        return self._acquire().await;
+        self._acquire().await
     }
 
     // 尝试获取锁
@@ -36,13 +37,11 @@ impl<'a> RedisLock<'a> {
                 }
                 Err(e) => return Err(e),
             }
-            tokio::time::sleep(tokio::time::Duration::from_millis(
-                rand::thread_rng().gen_range(50..=200),
-            ))
-            .await;
+            let delay = rand::thread_rng().gen_range(1000..=2000);
+            sleep(Duration::from_millis(delay)).await;
         }
 
-        return Ok(false);
+        Ok(false)
     }
 
     async fn _acquire(&mut self) -> Result<bool, redis::RedisError> {

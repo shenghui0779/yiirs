@@ -1,4 +1,4 @@
-use library::core::{cfg, db, logger};
+use library::core::{cfg, db, logger, redis};
 
 #[tokio::main]
 async fn main() {
@@ -14,6 +14,8 @@ async fn main() {
             let _guard = logger::init(Some(cfg::config()));
             // 初始化数据库
             db::init(cfg::config()).await;
+            // 初始化Redis
+            redis::init(cfg::config());
 
             // 启动服务
             api::serve().await;
