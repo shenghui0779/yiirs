@@ -10,8 +10,8 @@ pub async fn handle(mut request: Request, next: Next) -> Response {
         None => Identity::empty(),
         Some(v) => match v.to_str() {
             Ok(v) => Identity::from_auth_token(v.to_string()),
-            Err(err) => {
-                tracing::error!(error = ?err, "err get header(authorization)");
+            Err(e) => {
+                tracing::error!(error = ?e, "error get header(authorization)");
                 Identity::empty()
             }
         },

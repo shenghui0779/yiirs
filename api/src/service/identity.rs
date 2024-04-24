@@ -40,16 +40,16 @@ impl Identity {
 
     pub fn from_auth_token(token: String) -> Self {
         let cipher = match BASE64_STANDARD.decode(token) {
-            Err(err) => {
-                tracing::error!(error = ?err, "err invalid auth_token");
+            Err(e) => {
+                tracing::error!(error = ?e, "error invalid auth_token");
                 return Identity::empty();
             }
             Ok(v) => v,
         };
 
         let secret = match cfg::config().get_string("app.secret") {
-            Err(err) => {
-                tracing::error!(error = ?err, "err missing config(app.secret)");
+            Err(e) => {
+                tracing::error!(error = ?e, "error missing config(app.secret)");
                 return Identity::empty();
             }
             Ok(v) => v,
@@ -57,16 +57,16 @@ impl Identity {
         let key = secret.as_bytes();
 
         let plain = match CBC(key, &key[..16]).decrypt(&cipher) {
-            Err(err) => {
-                tracing::error!(error = ?err, "err invalid auth_token");
+            Err(e) => {
+                tracing::error!(error = ?e, "error invalid auth_token");
                 return Identity::empty();
             }
             Ok(v) => v,
         };
 
         match serde_json::from_slice::<Identity>(&plain) {
-            Err(err) => {
-                tracing::error!(error = ?err, "err invalid auth_token");
+            Err(e) => {
+                tracing::error!(error = ?e, "error invalid auth_token");
                 return Identity::empty();
             }
             Ok(identity) => identity,

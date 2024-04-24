@@ -24,8 +24,8 @@ pub async fn create(
         return Err(ApiErr::ErrPerm(None));
     }
 
-    if let Err(err) = req.validate() {
-        return Err(ApiErr::ErrParams(Some(err.to_string())));
+    if let Err(e) = req.validate() {
+        return Err(ApiErr::ErrParams(Some(e.to_string())));
     }
 
     crate::service::account::create(req).await

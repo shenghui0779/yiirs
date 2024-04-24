@@ -1,3 +1,5 @@
+use std::time;
+
 use nanoid::nanoid;
 use rand::Rng;
 use redis::{AsyncCommands, Commands, ExistenceCheck::NX, SetExpiry::PX};
@@ -13,11 +15,11 @@ pub struct RedisLock {
 }
 
 impl RedisLock {
-    pub fn new(key: String, ttl: chrono::Duration) -> RedisLock {
+    pub fn new(key: String, ttl: time::Duration) -> RedisLock {
         RedisLock {
             key,
             token: String::from(""),
-            expire: ttl.num_milliseconds() as usize,
+            expire: ttl.as_millis() as usize,
         }
     }
 
@@ -45,10 +47,7 @@ impl RedisLock {
     }
 
     async fn _acquire(&mut self) -> anyhow::Result<bool> {
-        let mut conn = match cache::redis_async_pool().get().await {
-            Err(e) => return Err(e.into()),
-            Ok(v) => v,
-        };
+        let mut conn = cache::redis_async_pool().get().await?;
         let opts = redis::SetOptions::default()
             .conditional_set(NX)
             .with_expiration(PX(self.expire));

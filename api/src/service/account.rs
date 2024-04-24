@@ -28,8 +28,8 @@ pub async fn create(req: ReqCreate) -> Result<ApiOK<()>> {
         .count(db::conn())
         .await
     {
-        Err(err) => {
-            tracing::error!(error = ?err, "err find account");
+        Err(e) => {
+            tracing::error!(error = ?e, "error find account");
             return Err(ApiErr::ErrSystem(None));
         }
         Ok(v) => {
@@ -55,8 +55,8 @@ pub async fn create(req: ReqCreate) -> Result<ApiOK<()>> {
         ..Default::default()
     };
 
-    if let Err(err) = Account::insert(model).exec(db::conn()).await {
-        tracing::error!(error = ?err, "err insert account");
+    if let Err(e) = Account::insert(model).exec(db::conn()).await {
+        tracing::error!(error = ?e, "error insert account");
         return Err(ApiErr::ErrSystem(None));
     }
 
@@ -76,8 +76,8 @@ pub struct RespInfo {
 
 pub async fn info(account_id: u64) -> Result<ApiOK<RespInfo>> {
     let model = match Account::find_by_id(account_id).one(db::conn()).await {
-        Err(err) => {
-            tracing::error!(error = ?err, "err find account");
+        Err(e) => {
+            tracing::error!(error = ?e, "error find account");
             return Err(ApiErr::ErrSystem(None));
         }
         Ok(v) => match v {
@@ -128,8 +128,8 @@ pub async fn list(query: HashMap<String, String>) -> Result<ApiOK<RespList>> {
             .one(db::conn())
             .await
         {
-            Err(err) => {
-                tracing::error!(error = ?err, "err count account");
+            Err(e) => {
+                tracing::error!(error = ?e, "error count account");
                 return Err(ApiErr::ErrSystem(None));
             }
             Ok(v) => v.unwrap_or_default(),
@@ -143,8 +143,8 @@ pub async fn list(query: HashMap<String, String>) -> Result<ApiOK<RespList>> {
         .all(db::conn())
         .await
     {
-        Err(err) => {
-            tracing::error!(error = ?err, "err find account");
+        Err(e) => {
+            tracing::error!(error = ?e, "error find account");
             return Err(ApiErr::ErrSystem(None));
         }
         Ok(v) => v,

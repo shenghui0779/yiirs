@@ -24,7 +24,7 @@ pub async fn handle(request: Request, next: Next) -> Response {
     };
 
     let (response, body) = match drain_body(request, next).await {
-        Err(err) => return err.into_response(),
+        Err(e) => return e.into_response(),
         Ok(v) => v,
     };
 
@@ -93,8 +93,8 @@ async fn drain_body(request: Request, next: Next) -> Result<(Response, Option<St
     // this wont work if the body is an long running stream
     let bytes = match body.collect().await {
         Ok(v) => v.to_bytes(),
-        Err(err) => {
-            tracing::error!(error = ?err, "err parse request body");
+        Err(e) => {
+            tracing::error!(error = ?e, "error parse request body");
             return Err(ApiErr::ErrSystem(None));
         }
     };

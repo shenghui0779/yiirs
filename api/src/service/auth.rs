@@ -33,8 +33,8 @@ pub async fn login(req: ReqLogin) -> Result<ApiOK<RespLogin>> {
         .await;
 
     let record = match ret {
-        Err(err) => {
-            tracing::error!(error = ?err, "err find account");
+        Err(e) => {
+            tracing::error!(error = ?e, "error find account");
             return Err(ApiErr::ErrSystem(None));
         }
         Ok(v) => v,
@@ -56,8 +56,8 @@ pub async fn login(req: ReqLogin) -> Result<ApiOK<RespLogin>> {
 
     let auth_token = match Identity::new(model.id, model.role, login_token.clone()).to_auth_token()
     {
-        Err(err) => {
-            tracing::error!(error = ?err, "err identity encrypt");
+        Err(e) => {
+            tracing::error!(error = ?e, "error identity encrypt");
             return Err(ApiErr::ErrSystem(None));
         }
         Ok(v) => v,
@@ -76,8 +76,8 @@ pub async fn login(req: ReqLogin) -> Result<ApiOK<RespLogin>> {
         .exec(db::conn())
         .await;
 
-    if let Err(err) = ret_update {
-        tracing::error!(error = ?err, "err update account");
+    if let Err(e) = ret_update {
+        tracing::error!(error = ?e, "error update account");
         return Err(ApiErr::ErrSystem(None));
     }
 
@@ -101,8 +101,8 @@ pub async fn logout(identity: Identity) -> Result<ApiOK<()>> {
         .exec(db::conn())
         .await;
 
-    if let Err(err) = ret {
-        tracing::error!(error = ?err, "err update account");
+    if let Err(e) = ret {
+        tracing::error!(error = ?e, "error update account");
         return Err(ApiErr::ErrSystem(None));
     }
 

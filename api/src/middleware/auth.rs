@@ -14,7 +14,7 @@ pub async fn handle(request: Request, next: Next) -> Response {
         None => return ApiErr::ErrAuth(None).into_response(),
         Some(v) => match v.check().await {
             Ok(_) => (),
-            Err(err) => return ApiErr::ErrAuth(Some(err.to_string())).into_response(),
+            Err(e) => return ApiErr::ErrAuth(Some(e.to_string())).into_response(),
         },
     }
 

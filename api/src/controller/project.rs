@@ -20,8 +20,8 @@ pub async fn create(
     Extension(identity): Extension<Identity>,
     WithRejection(Json(req), _): IRejection<Json<ReqCreate>>,
 ) -> Result<ApiOK<()>> {
-    if let Err(err) = req.validate() {
-        return Err(ApiErr::ErrParams(Some(err.to_string())));
+    if let Err(e) = req.validate() {
+        return Err(ApiErr::ErrParams(Some(e.to_string())));
     }
 
     crate::service::project::create(identity, req).await
