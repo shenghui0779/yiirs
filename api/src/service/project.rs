@@ -7,14 +7,11 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use library::{
-    core::db,
-    result::response::{ApiErr, ApiOK, Result},
-    time::Layout,
-};
+use library::{core::db, time::Layout};
 use library::{time, util};
 
-use crate::identity::{Identity, Role};
+use super::identity::{Identity, Role};
+use crate::result::response::{ApiErr, ApiOK, Result};
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
 pub struct ReqCreate {

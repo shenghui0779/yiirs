@@ -5,15 +5,15 @@ use axum::{
     Extension, Json,
 };
 use axum_extra::extract::WithRejection;
-use service::{
-    account::{ReqCreate, RespInfo, RespList},
-    identity::{Identity, Role},
-};
 use validator::Validate;
 
-use library::result::{
+use crate::result::{
     rejection::IRejection,
     response::{ApiErr, ApiOK, Result},
+};
+use crate::service::{
+    account::{ReqCreate, RespInfo, RespList},
+    identity::{Identity, Role},
 };
 
 pub async fn create(
@@ -28,7 +28,7 @@ pub async fn create(
         return Err(ApiErr::ErrParams(Some(err.to_string())));
     }
 
-    service::account::create(req).await
+    crate::service::account::create(req).await
 }
 
 pub async fn info(
@@ -39,7 +39,7 @@ pub async fn info(
         return Err(ApiErr::ErrPerm(None));
     }
 
-    service::account::info(account_id).await
+    crate::service::account::info(account_id).await
 }
 
 pub async fn list(
@@ -50,5 +50,5 @@ pub async fn list(
         return Err(ApiErr::ErrPerm(None));
     }
 
-    service::account::list(query).await
+    crate::service::account::list(query).await
 }

@@ -2,7 +2,9 @@ use library::core::cfg;
 
 pub mod controller;
 pub mod middleware;
+pub mod result;
 pub mod router;
+pub mod service;
 
 pub async fn serve() {
     // run it with hyper on localhost:8000

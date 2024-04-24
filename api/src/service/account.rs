@@ -8,8 +8,8 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
+use crate::result::response::{ApiErr, ApiOK, Result};
 use entity::{account, prelude::*};
-use library::result::response::{ApiErr, ApiOK, Result};
 use library::{core::db, crypto::hash::md5};
 
 #[derive(Debug, Validate, Deserialize, Serialize)]

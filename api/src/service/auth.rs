@@ -6,10 +6,10 @@ use validator::Validate;
 
 use entity::{account, prelude::*};
 use library::crypto::hash::md5;
-use library::result::response::{ApiErr, ApiOK, Result};
 use library::util;
 
-use crate::identity::Identity;
+use super::identity::Identity;
+use crate::result::response::{ApiErr, ApiOK, Result};
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
 pub struct ReqLogin {
