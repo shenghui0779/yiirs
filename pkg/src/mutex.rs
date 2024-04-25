@@ -5,7 +5,7 @@ use rand::Rng;
 use redis::{AsyncCommands, Commands, ExistenceCheck::NX, SetExpiry::PX};
 use tokio::time::{sleep, Duration};
 
-use crate::core::cache;
+use crate::cache;
 
 // 基于Redis的分布式锁
 pub struct RedisLock {

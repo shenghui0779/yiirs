@@ -1,28 +1,30 @@
-use library::core::{cache, cfg, db, logger};
+use clap::Parser;
+use pkg::{cache, config, db, logger};
+use tracing_appender::non_blocking::WorkerGuard;
 
 #[tokio::main]
 async fn main() {
-    let matches = cmd::cli().get_matches();
-
+    let cli = cmd::Cli::parse();
     // _guard 必须在 main 函数中才能使日志生效
-    match matches.subcommand() {
-        // Command: serve
-        Some((cmd::serve::NAME, sub_matches)) => {
-            // 初始化配置
-            cfg::init(sub_matches.get_one::<String>(cmd::serve::ARG_FILE).unwrap());
-            // 初始化日志
-            let _guard = logger::init(Some(cfg::config()));
-            // 初始化数据库
-            db::init(cfg::config()).await;
-            // 初始化Redis
-            cache::init_redis(cfg::config());
-
-            // 启动服务
-            api::serve().await;
+    let _guard = init(&cli.config).await;
+    // 处理subcommand
+    if let Some(v) = cli.command {
+        match v {
+            cmd::Command::Hello { name } => cmd::hello::exec(name),
+            cmd::Command::Serve => api::serve().await,
         }
-        // Command: hello
-        Some((cmd::hello::NAME, _sub_matches)) => println!("hello world"),
-        // Unreachable
-        _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     }
+}
+
+async fn init(cfg_file: &str) -> WorkerGuard {
+    // 初始化配置
+    config::init(cfg_file);
+    // 初始化日志
+    let _guard = logger::init(Some(config::global()));
+    // 初始化数据库
+    db::init(config::global()).await;
+    // 初始化Redis
+    cache::init_redis(config::global());
+
+    _guard
 }

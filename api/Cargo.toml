@@ -39,5 +39,5 @@ redis = { version = "0.23", features = [
 ] }
 
 # workspace modules
-library = { path = "../library" }
+pkg = { path = "../pkg" }
 entity = { path = "../entity" }

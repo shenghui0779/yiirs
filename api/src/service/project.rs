@@ -7,8 +7,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use library::{core::db, time::Layout};
-use library::{time, util};
+use pkg::{db, time, time::Layout, util};
 
 use super::identity::{Identity, Role};
 use crate::result::response::{ApiErr, ApiOK, Result};

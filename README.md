@@ -21,7 +21,7 @@ Rust API 快速开发脚手架
 - `api` => 处理API服务
 - `cmd` => 定义命令行
 - `entity` => 定义数据库表实体
-- `library` => 放置公共库
+- `pkg` => 放置公共库
 
 #### 2. 本地运行
 
@@ -33,5 +33,5 @@ demo_rs.sql
 mv config.toml.example config.toml
 
 # 启动服务
-cargo run serve
+cargo run -- serve
 ```

@@ -1,4 +1,4 @@
-use library::core::cfg;
+use pkg::config;
 
 pub mod controller;
 pub mod middleware;
@@ -8,7 +8,7 @@ pub mod service;
 
 pub async fn serve() {
     // run it with hyper on localhost:8000
-    let addr = cfg::config().get_int("app.port").unwrap_or(8000);
+    let addr = config::global().get_int("app.port").unwrap_or(8000);
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", addr))
         .await

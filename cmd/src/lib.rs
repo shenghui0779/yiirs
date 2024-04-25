@@ -1,15 +1,21 @@
-use clap::Command;
+use clap::{Parser, Subcommand};
 
 pub mod hello;
-pub mod serve;
 
-pub fn cli() -> Command {
-    Command::new("api-tpl-rs")
-        .about("rust api service - build with tokio | clap | axum | sea-orm | tracing")
-        .version("1.1.0")
-        .subcommand_required(false)
-        .arg_required_else_help(true)
-        .author("shenghui0779")
-        .subcommand(serve::cmd())
-        .subcommand(hello::cmd())
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+pub struct Cli {
+    #[arg(short, long, value_name = "FILE", default_value = "config.toml")]
+    pub config: String,
+    #[command(subcommand)]
+    pub command: Option<Command>,
+}
+
+#[derive(Subcommand, Debug, Clone)]
+pub enum Command {
+    Hello {
+        #[arg(short, long, default_value = "world")]
+        name: String,
+    },
+    Serve,
 }

@@ -1,12 +1,11 @@
-use library::core::db;
 use sea_orm::sea_query::Expr;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use entity::{account, prelude::*};
-use library::crypto::hash::md5;
-use library::util;
+use pkg::crypto::hash::md5;
+use pkg::{db, util};
 
 use super::identity::Identity;
 use crate::result::response::{ApiErr, ApiOK, Result};

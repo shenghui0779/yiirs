@@ -4,9 +4,9 @@ use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};
 
 use entity::prelude::Account;
-use library::{
-    core::{cfg, db},
+use pkg::{
     crypto::aes::CBC,
+    {config, db},
 };
 
 pub enum Role {
@@ -47,7 +47,7 @@ impl Identity {
             Ok(v) => v,
         };
 
-        let secret = match cfg::config().get_string("app.secret") {
+        let secret = match config::global().get_string("app.secret") {
             Err(e) => {
                 tracing::error!(error = ?e, "error missing config(app.secret)");
                 return Identity::empty();
@@ -74,7 +74,7 @@ impl Identity {
     }
 
     pub fn to_auth_token(&self) -> Result<String> {
-        let secret = cfg::config().get_string("app.secret")?;
+        let secret = config::global().get_string("app.secret")?;
         let key = secret.as_bytes();
 
         let plain = serde_json::to_vec(self)?;

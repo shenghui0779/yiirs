@@ -3,7 +3,7 @@ use std::{fs, sync::OnceLock};
 
 static CFG: OnceLock<Config> = OnceLock::new();
 
-pub fn init(cfg_file: &String) {
+pub fn init(cfg_file: &str) {
     let path = fs::canonicalize(cfg_file)
         .unwrap_or_else(|e| panic!("配置文件加载失败：{} - {}", e, cfg_file));
 
@@ -15,6 +15,6 @@ pub fn init(cfg_file: &String) {
     let _ = CFG.set(cfg);
 }
 
-pub fn config() -> &'static Config {
+pub fn global() -> &'static Config {
     CFG.get().unwrap_or_else(|| panic!("配置文件未初始化"))
 }

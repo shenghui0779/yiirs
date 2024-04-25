@@ -7,12 +7,16 @@ description = "API project template for Rust"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace]
-members = [".", "api", "cmd", "entity", "library"]
+members = [".", "api", "cmd", "entity", "pkg"]
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
+clap = { version = "4.5", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json"] }
+tracing-appender = "0.2"
 
 # workspace modules
 api = { path = "api" }
 cmd = { path = "cmd" }
-library = { path = "library" }
+pkg = { path = "pkg" }
