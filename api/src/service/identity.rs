@@ -3,7 +3,7 @@ use base64::{prelude::BASE64_STANDARD, Engine};
 use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};
 
-use entity::prelude::Account;
+use ent::prelude::Account;
 use pkg::{
     crypto::aes::CBC,
     {config, db},

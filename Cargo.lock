@@ -140,7 +140,7 @@ dependencies = [
  "axum-extra",
  "base64 0.21.7",
  "chrono",
- "entity",
+ "ent",
  "http",
  "http-body",
  "http-body-util",
@@ -737,7 +737,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "entity"
+name = "ent"
 version = "0.1.0"
 dependencies = [
  "sea-orm",

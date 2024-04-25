@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use entity::{prelude::*, project};
+use ent::{prelude::*, project};
 use sea_orm::{
     ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
 };

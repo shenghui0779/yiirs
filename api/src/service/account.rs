@@ -6,7 +6,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use entity::{account, prelude::*};
+use ent::{account, prelude::*};
 use pkg::{
     crypto::hash::md5,
     db,

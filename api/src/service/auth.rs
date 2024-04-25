@@ -3,7 +3,7 @@ use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use entity::{account, prelude::*};
+use ent::{account, prelude::*};
 use pkg::crypto::hash::md5;
 use pkg::{db, util};
 

@@ -1,5 +1,5 @@
 [package]
-name = "entity"
+name = "ent"
 version = "0.1.0"
 edition = "2021"
 
