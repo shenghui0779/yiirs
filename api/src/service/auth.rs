@@ -26,55 +26,40 @@ pub struct RespLogin {
 }
 
 pub async fn login(req: ReqLogin) -> Result<ApiOK<RespLogin>> {
-    let ret = Account::find()
+    let model = Account::find()
         .filter(account::Column::Username.eq(req.username))
         .one(db::conn())
-        .await;
-
-    let record = match ret {
-        Err(e) => {
+        .await
+        .map_err(|e| {
             tracing::error!(error = ?e, "error find account");
-            return Err(ApiErr::ErrSystem(None));
-        }
-        Ok(v) => v,
-    };
-
-    let model = match record {
-        None => return Err(ApiErr::ErrAuth(Some("账号不存在".to_string()))),
-        Some(v) => v,
-    };
+            ApiErr::ErrSystem(None)
+        })?
+        .ok_or(ApiErr::ErrAuth(Some("账号不存在".to_string())))?;
 
     let pass = format!("{}{}", req.password, model.salt);
-
     if md5(pass.as_bytes()) != model.password {
         return Err(ApiErr::ErrAuth(Some("密码错误".to_string())));
     }
 
     let now = chrono::Local::now().timestamp();
     let login_token = md5(format!("auth.{}.{}.{}", model.id, now, util::nonce(16)).as_bytes());
-
-    let auth_token = match Identity::new(model.id, model.role, login_token.clone()).to_auth_token()
-    {
-        Err(e) => {
+    let auth_token = Identity::new(model.id, model.role, login_token.clone())
+        .to_auth_token()
+        .map_err(|e| {
             tracing::error!(error = ?e, "error identity encrypt");
-            return Err(ApiErr::ErrSystem(None));
-        }
-        Ok(v) => v,
-    };
-
-    let am = account::ActiveModel {
+            ApiErr::ErrSystem(None)
+        })?;
+    let update_model = account::ActiveModel {
         login_at: Set(now),
         login_token: Set(login_token),
         updated_at: Set(now),
         ..Default::default()
     };
-
     let ret_update = Account::update_many()
         .filter(account::Column::Id.eq(model.id))
-        .set(am)
+        .set(update_model)
         .exec(db::conn())
         .await;
-
     if let Err(e) = ret_update {
         tracing::error!(error = ?e, "error update account");
         return Err(ApiErr::ErrSystem(None));

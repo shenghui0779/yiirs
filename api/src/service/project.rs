@@ -23,25 +23,20 @@ pub struct ReqCreate {
 
 pub async fn create(identity: Identity, req: ReqCreate) -> Result<ApiOK<()>> {
     // 校验编号唯一性
-    match Project::find()
+    let count = Project::find()
         .filter(project::Column::Code.eq(req.code.clone()))
         .count(db::conn())
         .await
-    {
-        Err(e) => {
+        .map_err(|e| {
             tracing::error!(error = ?e, "error find project");
-            return Err(ApiErr::ErrSystem(None));
-        }
-        Ok(v) => {
-            if v > 0 {
-                return Err(ApiErr::ErrPerm(Some("该编号已被使用".to_string())));
-            }
-        }
+            ApiErr::ErrSystem(None)
+        })?;
+    if count > 0 {
+        return Err(ApiErr::ErrPerm(Some("该编号已被使用".to_string())));
     }
 
     let now = chrono::Local::now().timestamp();
-
-    let am = project::ActiveModel {
+    let model = project::ActiveModel {
         code: Set(req.code),
         name: Set(req.name),
         remark: Set(req.remark.unwrap_or_default()),
@@ -50,8 +45,7 @@ pub async fn create(identity: Identity, req: ReqCreate) -> Result<ApiOK<()>> {
         updated_at: Set(now),
         ..Default::default()
     };
-
-    if let Err(e) = Project::insert(am).exec(db::conn()).await {
+    if let Err(e) = Project::insert(model).exec(db::conn()).await {
         tracing::error!(error = ?e, "error insert project");
         return Err(ApiErr::ErrSystem(None));
     }
@@ -76,7 +70,6 @@ pub struct RespList {
 
 pub async fn list(identity: Identity, query: HashMap<String, String>) -> Result<ApiOK<RespList>> {
     let mut builder = Project::find();
-
     if identity.is_role(Role::Super) {
         if let Some(account_id) = query.get("account_id") {
             if let Ok(v) = account_id.parse::<u64>() {
@@ -86,60 +79,49 @@ pub async fn list(identity: Identity, query: HashMap<String, String>) -> Result<
     } else {
         builder = builder.filter(project::Column::AccountId.eq(identity.id()));
     }
-
     if let Some(code) = query.get("code") {
         if code.len() > 0 {
             builder = builder.filter(project::Column::Code.eq(code.to_owned()));
         }
     }
-
     if let Some(name) = query.get("name") {
         if name.len() > 0 {
             builder = builder.filter(project::Column::Name.contains(name));
         }
     }
 
-    let (offset, limit) = util::query_page(&query);
-
     let mut total: i64 = 0;
-
+    let (offset, limit) = util::query_page(&query);
     // 仅在第一页计算数量
     if offset == 0 {
-        total = match builder
+        total = builder
             .clone()
             .select_only()
             .column_as(project::Column::Id.count(), "count")
             .into_tuple::<i64>()
             .one(db::conn())
             .await
-        {
-            Err(e) => {
+            .map_err(|e| {
                 tracing::error!(error = ?e, "error count project");
-                return Err(ApiErr::ErrSystem(None));
-            }
-            Ok(v) => v.unwrap_or_default(),
-        }
+                ApiErr::ErrSystem(None)
+            })?
+            .unwrap_or_default();
     }
 
-    let models = match builder
+    let models = builder
         .order_by(project::Column::Id, Order::Desc)
         .offset(offset)
         .limit(limit)
         .all(db::conn())
         .await
-    {
-        Err(e) => {
+        .map_err(|e| {
             tracing::error!(error = ?e, "error find project");
-            return Err(ApiErr::ErrSystem(None));
-        }
-        Ok(v) => v,
-    };
-
+            ApiErr::ErrSystem(None)
+        })?;
     let mut resp = RespList {
         total,
         list: (Vec::with_capacity(models.len())),
     };
-
     for model in models {
         let info = RespInfo {
             id: model.id,
@@ -148,7 +130,6 @@ pub async fn list(identity: Identity, query: HashMap<String, String>) -> Result<
             created_at: model.created_at,
             created_at_str: time::Format(Layout::DateTime(None)).to_string(model.created_at),
         };
-
         resp.list.push(info);
     }
 
@@ -172,26 +153,18 @@ pub struct ProjAccount {
 }
 
 pub async fn detail(identity: Identity, project_id: u64) -> Result<ApiOK<RespDetail>> {
-    let (model_proj, model_account) = match Project::find_by_id(project_id)
+    let (model_proj, model_account) = Project::find_by_id(project_id)
         .find_also_related(Account)
         .one(db::conn())
         .await
-    {
-        Err(e) => {
+        .map_err(|e| {
             tracing::error!(error = ?e, "error find project");
-            return Err(ApiErr::ErrSystem(None));
-        }
-        Ok(v) => match v {
-            None => return Err(ApiErr::ErrNotFound(Some("项目不存在".to_string()))),
-            Some((model_proj, model_account)) => {
-                if !identity.is_role(Role::Super) && identity.id() != model_proj.account_id {
-                    return Err(ApiErr::ErrPerm(None));
-                }
-
-                (model_proj, model_account)
-            }
-        },
-    };
+            ApiErr::ErrSystem(None)
+        })?
+        .ok_or(ApiErr::ErrNotFound(Some("项目不存在".to_string())))?;
+    if !identity.is_role(Role::Super) && identity.id() != model_proj.account_id {
+        return Err(ApiErr::ErrPerm(None));
+    }
 
     let mut resp = RespDetail {
         id: model_proj.id,
@@ -201,7 +174,6 @@ pub async fn detail(identity: Identity, project_id: u64) -> Result<ApiOK<RespDet
         created_at_str: time::Format(Layout::DateTime(None)).to_string(model_proj.created_at),
         account: None,
     };
-
     if let Some(v) = model_account {
         resp.account = Some(ProjAccount {
             id: v.id,

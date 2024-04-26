@@ -46,7 +46,6 @@ impl Identity {
             }
             Ok(v) => v,
         };
-
         let secret = match config::global().get_string("app.secret") {
             Err(e) => {
                 tracing::error!(error = ?e, "error missing config(app.secret)");
@@ -55,7 +54,6 @@ impl Identity {
             Ok(v) => v,
         };
         let key = secret.as_bytes();
-
         let plain = match CBC(key, &key[..16]).decrypt(&cipher) {
             Err(e) => {
                 tracing::error!(error = ?e, "error invalid auth_token");
@@ -125,11 +123,9 @@ impl Identity {
         if self.i == 0 {
             return String::from("<none>");
         }
-
         if self.r == 0 {
             return format!("id:{}|token:{}", self.i, self.t);
         }
-
         format!("id:{}|role:{}|token:{}", self.i, self.r, self.t)
     }
 }
