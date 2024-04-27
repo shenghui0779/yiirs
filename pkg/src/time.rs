@@ -32,40 +32,36 @@ impl<'a> Format<'a> {
                 .to_string();
         }
 
-        match DateTime::<Utc>::from_timestamp(timestamp, 0) {
-            None => String::from(""),
-            Some(v) => v
-                .with_timezone(&timezone)
+        let dt = DateTime::from_timestamp(timestamp, 0);
+        dt.map_or(String::from(""), |v| {
+            v.with_timezone(&timezone)
                 .format(layout.to_str())
-                .to_string(),
-        }
+                .to_string()
+        })
     }
 
     // 日期转Unix时间戳
     pub fn to_timestamp(self, datetime: &str) -> i64 {
-        let Format(layout) = self;
-
         if datetime.len() == 0 {
             return 0;
         }
 
+        let Format(layout) = self;
         let timezone = FixedOffset::east_opt(8 * 3600).unwrap();
 
         match layout {
-            Layout::Date(v) => match NaiveDate::parse_from_str(datetime, v.unwrap_or("%Y-%m-%d")) {
-                Err(_) => 0,
-                Ok(v) => v
-                    .and_hms_opt(0, 0, 0)
-                    .unwrap()
-                    .and_local_timezone(timezone)
-                    .unwrap()
-                    .timestamp(),
-            },
+            Layout::Date(v) => {
+                NaiveDate::parse_from_str(datetime, v.unwrap_or("%Y-%m-%d")).map_or(0, |v| {
+                    v.and_hms_opt(0, 0, 0)
+                        .unwrap()
+                        .and_local_timezone(timezone)
+                        .unwrap()
+                        .timestamp()
+                })
+            }
             Layout::DateTime(v) => {
-                match NaiveDateTime::parse_from_str(datetime, v.unwrap_or("%Y-%m-%d %H:%M:%S")) {
-                    Err(_) => 0,
-                    Ok(v) => v.and_local_timezone(timezone).unwrap().timestamp(),
-                }
+                NaiveDateTime::parse_from_str(datetime, v.unwrap_or("%Y-%m-%d %H:%M:%S"))
+                    .map_or(0, |v| v.and_local_timezone(timezone).unwrap().timestamp())
             }
             _ => 0,
         }

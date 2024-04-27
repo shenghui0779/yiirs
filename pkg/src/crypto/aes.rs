@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use openssl::symm::{Cipher, Crypter, decrypt_aead, encrypt_aead, Mode};
+use openssl::symm::{decrypt_aead, encrypt_aead, Cipher, Crypter, Mode};
 
 // AES-CBC pkcs#7
 // CBC(key, iv)
@@ -58,7 +58,6 @@ impl<'a> ECB<'a> {
             32 => Cipher::aes_256_ecb(),
             _ => return Err(anyhow!("crypto/aes: invalid key size")),
         };
-
         Ok(cipher)
     }
 
@@ -103,7 +102,6 @@ impl<'a> GCM<'a> {
             32 => Cipher::aes_256_gcm(),
             _ => return Err(anyhow!("crypto/aes: invalid key size")),
         };
-
         Ok(cipher)
     }
 
@@ -118,7 +116,6 @@ impl<'a> GCM<'a> {
         let GCM(key, iv) = *self;
         let mut tag = vec![0; tag_size.unwrap_or(16)];
         let out = encrypt_aead(t, key, Some(iv), aad, data, &mut tag)?;
-
         Ok((out, tag))
     }
 
@@ -126,7 +123,6 @@ impl<'a> GCM<'a> {
         let t = self.cipher()?;
         let GCM(key, iv) = *self;
         let out = decrypt_aead(t, key, Some(iv), aad, data, tag)?;
-
         Ok(out)
     }
 }
@@ -136,24 +132,21 @@ fn pkcs7_padding(data: &[u8], block_size: usize) -> Vec<u8> {
     if padding == 0 {
         padding = block_size
     }
-
     let mut b = [padding as u8; 1].repeat(padding);
     let mut v = data.to_vec();
     v.append(&mut b);
-
     v
 }
 
 fn pkcs7_unpadding(data: &[u8]) -> Vec<u8> {
     let len = data.len();
     let padding = data[len - 1] as usize;
-
     data[..len - padding].to_vec()
 }
 
 #[cfg(test)]
 mod tests {
-    use base64::{Engine, prelude::BASE64_STANDARD};
+    use base64::{prelude::BASE64_STANDARD, Engine};
 
     use crate::crypto::aes::{CBC, ECB, GCM};
 

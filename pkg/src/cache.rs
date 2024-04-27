@@ -98,16 +98,19 @@ pub fn init_redis_cluster(cfg: &Config) {
 
     // 异步
     let async_pool = mobc::Pool::builder()
-        .max_open(cfg.get_int("redis.options.max_size").unwrap_or(20) as u64)
-        .max_idle(cfg.get_int("redis.options.min_idle").unwrap_or(10) as u64)
+        .max_open(cfg.get_int("redis-cluster.options.max_size").unwrap_or(20) as u64)
+        .max_idle(cfg.get_int("redis-cluster.options.min_idle").unwrap_or(10) as u64)
         .get_timeout(Some(Duration::from_secs(
-            cfg.get_int("redis.options.conn_timeout").unwrap_or(10) as u64,
+            cfg.get_int("redis-cluster.options.conn_timeout")
+                .unwrap_or(10) as u64,
         )))
         .max_idle_lifetime(Some(Duration::from_secs(
-            cfg.get_int("redis.options.idle_timeout").unwrap_or(300) as u64,
+            cfg.get_int("redis-cluster.options.idle_timeout")
+                .unwrap_or(300) as u64,
         )))
         .max_lifetime(Some(Duration::from_secs(
-            cfg.get_int("redis.options.max_lifetime").unwrap_or(600) as u64,
+            cfg.get_int("redis-cluster.options.max_lifetime")
+                .unwrap_or(600) as u64,
         )))
         .build(RedisClusterAsyncConnManager::new(client));
     let _ = REDIS_CLUSTER_ASYNC_POOL.set(async_pool);

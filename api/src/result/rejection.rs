@@ -26,7 +26,6 @@ impl IntoResponse for MyRejection {
                 _ => ApiErr::ErrSystem(None),
             },
         };
-
         err.into_response()
     }
 }

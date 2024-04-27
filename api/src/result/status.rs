@@ -31,7 +31,6 @@ where
             msg: String::from("OK"),
             data: None,
         };
-
         match self {
             Status::OK(data) => {
                 resp.data = data;
@@ -42,7 +41,6 @@ where
                 resp.msg = msg;
             }
         }
-
         resp
     }
 }
