@@ -23,8 +23,12 @@ pub async fn handle(request: Request, next: Next) -> Response {
     );
     cors_headers.insert(
         ACCESS_CONTROL_ALLOW_HEADERS,
-        HeaderValue::from_static("content-type, authorization, withCredentials"),
+        HeaderValue::from_static("Content-Type, Authorization, withCredentials"),
     );
+    // cors_headers.insert(
+    //     ACCESS_CONTROL_EXPOSE_HEADERS,
+    //     HeaderValue::from_static("服务器暴露一些自定义的头信息，允许客户端访问"),
+    // );
 
     if request.method() == Method::OPTIONS {
         return (StatusCode::NO_CONTENT, cors_headers).into_response();
