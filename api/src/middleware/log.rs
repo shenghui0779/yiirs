@@ -73,23 +73,15 @@ async fn drain_body(request: Request, next: Next) -> Result<(Response, Option<St
         .and_then(|value| value.to_str().ok())
     {
         Some(v) => {
-            if v.starts_with("application/json")
-                || v.starts_with("application/x-www-form-urlencoded")
-            {
-                true
-            } else {
-                false
-            }
+            v.starts_with("application/json") || v.starts_with("application/x-www-form-urlencoded")
         }
         None => false,
     };
-
     if !ok {
         return Ok((next.run(request).await, None));
     }
 
     let (parts, body) = request.into_parts();
-
     // this wont work if the body is an long running stream
     let bytes = match body.collect().await {
         Ok(v) => v.to_bytes(),
@@ -98,14 +90,9 @@ async fn drain_body(request: Request, next: Next) -> Result<(Response, Option<St
             return Err(ApiErr::ErrSystem(None));
         }
     };
-
-    let body = std::str::from_utf8(&bytes)
-        .and_then(|s| Ok(s.to_string()))
-        .ok();
-
+    let body = std::str::from_utf8(&bytes).map(|s| s.to_string()).ok();
     let response = next
         .run(Request::from_parts(parts, Body::from(bytes)))
         .await;
-
     Ok((response, body))
 }

@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use anyhow::{anyhow, Result};
 use base64::{prelude::BASE64_STANDARD, Engine};
 use sea_orm::EntityTrait;
@@ -65,7 +67,7 @@ impl Identity {
         match serde_json::from_slice::<Identity>(&plain) {
             Err(e) => {
                 tracing::error!(error = ?e, "error invalid auth_token");
-                return Identity::empty();
+                Identity::empty()
             }
             Ok(identity) => identity,
         }
@@ -110,7 +112,7 @@ impl Identity {
         match Account::find_by_id(self.id()).one(db::conn()).await? {
             None => return Err(anyhow!("授权账号不存在")),
             Some(v) => {
-                if v.login_token.len() == 0 || self.t != v.login_token {
+                if v.login_token.is_empty() || self.t != v.login_token {
                     return Err(anyhow!("授权已失效"));
                 }
             }
@@ -118,14 +120,16 @@ impl Identity {
 
         Ok(())
     }
+}
 
-    pub fn to_string(&self) -> String {
+impl Display for Identity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.i == 0 {
-            return String::from("<none>");
+            return write!(f, "<none>");
         }
         if self.r == 0 {
-            return format!("id:{}|token:{}", self.i, self.t);
+            return write!(f, "id:{}|token:{}", self.i, self.t);
         }
-        format!("id:{}|role:{}|token:{}", self.i, self.r, self.t)
+        write!(f, "id:{}|role:{}|token:{}", self.i, self.r, self.t)
     }
 }

@@ -161,10 +161,10 @@ impl mobc::Manager for RedisAsyncConnManager {
     }
 
     async fn check(&self, mut conn: Self::Connection) -> Result<Self::Connection, Self::Error> {
-        if !redis::cmd("PING")
+        if redis::cmd("PING")
             .query_async::<Self::Connection, String>(&mut conn)
             .await
-            .is_ok()
+            .is_err()
         {
             return Err(redis::RedisError::from(io::Error::from(
                 io::ErrorKind::BrokenPipe,
@@ -195,10 +195,10 @@ impl mobc::Manager for RedisClusterAsyncConnManager {
     }
 
     async fn check(&self, mut conn: Self::Connection) -> Result<Self::Connection, Self::Error> {
-        if !redis::cmd("PING")
+        if redis::cmd("PING")
             .query_async::<Self::Connection, String>(&mut conn)
             .await
-            .is_ok()
+            .is_err()
         {
             return Err(redis::RedisError::from(io::Error::from(
                 io::ErrorKind::BrokenPipe,

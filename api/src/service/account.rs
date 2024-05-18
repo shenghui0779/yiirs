@@ -104,7 +104,7 @@ pub struct RespList {
 pub async fn list(query: HashMap<String, String>) -> Result<ApiOK<RespList>> {
     let mut builder = Account::find();
     if let Some(username) = query.get("username") {
-        if username.len() > 0 {
+        if !username.is_empty() {
             builder = builder.filter(account::Column::Username.eq(username.to_owned()));
         }
     }

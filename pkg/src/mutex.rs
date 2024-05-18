@@ -55,7 +55,7 @@ impl RedisLock {
                     self.token = token;
                     return Ok(true);
                 }
-                return Ok(false);
+                Ok(false)
             }
             Err(e) => {
                 // 尝试GET一次：避免因redis网络错误导致误加锁
@@ -65,7 +65,7 @@ impl RedisLock {
                     self.token = token;
                     return Ok(true);
                 }
-                return Ok(false);
+                Ok(false)
             }
         }
     }
@@ -74,7 +74,7 @@ impl RedisLock {
 // 释放锁
 impl Drop for RedisLock {
     fn drop(&mut self) {
-        if self.token.len() == 0 {
+        if self.token.is_empty() {
             return;
         }
 

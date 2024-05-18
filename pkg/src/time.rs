@@ -42,7 +42,7 @@ impl<'a> Format<'a> {
 
     // 日期转Unix时间戳
     pub fn to_timestamp(self, datetime: &str) -> i64 {
-        if datetime.len() == 0 {
+        if datetime.is_empty() {
             return 0;
         }
 

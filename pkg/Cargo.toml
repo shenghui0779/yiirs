@@ -11,7 +11,7 @@ thiserror = "1.0"
 anyhow = "1.0"
 rand = "0.8"
 const-hex = "1.10"
-openssl = "0.10"
+openssl = { version = "0.10", features = ["vendored"] }
 digest = "0.10"
 md-5 = "0.10"
 sha1 = "0.10"

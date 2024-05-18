@@ -80,12 +80,12 @@ pub async fn list(identity: Identity, query: HashMap<String, String>) -> Result<
         builder = builder.filter(project::Column::AccountId.eq(identity.id()));
     }
     if let Some(code) = query.get("code") {
-        if code.len() > 0 {
+        if !code.is_empty() {
             builder = builder.filter(project::Column::Code.eq(code.to_owned()));
         }
     }
     if let Some(name) = query.get("name") {
-        if name.len() > 0 {
+        if !name.is_empty() {
             builder = builder.filter(project::Column::Name.contains(name));
         }
     }

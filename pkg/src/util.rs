@@ -17,7 +17,6 @@ pub fn query_page(args: &HashMap<String, String>) -> (u64, u64) {
             limit = size
         }
     }
-
     if limit > 100 {
         limit = 100
     }
@@ -33,9 +32,9 @@ pub fn query_page(args: &HashMap<String, String>) -> (u64, u64) {
 }
 
 pub fn new_validation_err(s: String) -> ValidationError {
-    return ValidationError {
+    ValidationError {
         code: Cow::from(""),
         message: Some(Cow::from(s)),
         params: HashMap::new(),
-    };
+    }
 }
