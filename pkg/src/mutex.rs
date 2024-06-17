@@ -51,7 +51,7 @@ impl RedisLock {
         Ok(false)
     }
 
-    // 释放锁
+    // 释放锁(手动)
     pub async fn unlock(&mut self) -> anyhow::Result<()> {
         if self.token.is_empty() {
             return Ok(());
@@ -96,7 +96,7 @@ impl RedisLock {
     }
 }
 
-// 释放锁
+// 释放锁(自动)
 impl Drop for RedisLock {
     fn drop(&mut self) {
         if !self.unlock || self.token.is_empty() {
