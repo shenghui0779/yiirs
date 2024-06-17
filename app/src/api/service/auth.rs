@@ -1,14 +1,16 @@
 use sea_orm::sea_query::Expr;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
+use time::macros::offset;
 use validator::Validate;
 
-use ent::{account, prelude::*};
 use pkg::crypto::hash::md5;
-use pkg::{db, util};
+use pkg::identity::Identity;
+use pkg::result::response::{ApiErr, ApiOK, Result};
+use pkg::{db, util, xtime};
 
-use super::identity::Identity;
-use crate::result::response::{ApiErr, ApiOK, Result};
+use crate::ent::account;
+use crate::ent::prelude::Account;
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
 pub struct ReqLogin {
@@ -41,7 +43,7 @@ pub async fn login(req: ReqLogin) -> Result<ApiOK<RespLogin>> {
         return Err(ApiErr::ErrAuth(Some("密码错误".to_string())));
     }
 
-    let now = chrono::Local::now().timestamp();
+    let now = xtime::now(offset!(+8)).unix_timestamp();
     let login_token = md5(format!("auth.{}.{}.{}", model.id, now, util::nonce(16)).as_bytes());
     let auth_token = Identity::new(model.id, model.role, login_token.clone())
         .to_auth_token()
@@ -80,7 +82,7 @@ pub async fn logout(identity: Identity) -> Result<ApiOK<()>> {
         .col_expr(account::Column::LoginToken, Expr::value(""))
         .col_expr(
             account::Column::CreatedAt,
-            Expr::value(chrono::Local::now().timestamp()),
+            Expr::value(xtime::now(offset!(+8)).unix_timestamp()),
         )
         .exec(db::conn())
         .await;

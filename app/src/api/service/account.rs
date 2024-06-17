@@ -4,17 +4,17 @@ use sea_orm::{
     ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
 };
 use serde::{Deserialize, Serialize};
+use time::macros::offset;
 use validator::Validate;
 
-use ent::{account, prelude::*};
 use pkg::{
     crypto::hash::md5,
     db,
-    time::{self, Layout},
-    util,
+    result::response::{ApiErr, ApiOK, Result},
+    util, xtime,
 };
 
-use crate::result::response::{ApiErr, ApiOK, Result};
+use crate::ent::{account, prelude::Account};
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
 pub struct ReqCreate {
@@ -41,7 +41,7 @@ pub async fn create(req: ReqCreate) -> Result<ApiOK<()>> {
 
     let salt = util::nonce(16);
     let pass = format!("{}{}", req.password, salt);
-    let now = chrono::Local::now().timestamp();
+    let now = xtime::now(offset!(+8)).unix_timestamp();
     let model = account::ActiveModel {
         username: Set(req.username),
         password: Set(md5(pass.as_bytes())),
@@ -87,9 +87,11 @@ pub async fn info(account_id: u64) -> Result<ApiOK<RespInfo>> {
         username: model.username,
         realname: model.realname,
         login_at: model.login_at,
-        login_at_str: time::Format(Layout::DateTime(None)).to_string(model.login_at),
+        login_at_str: xtime::to_string(xtime::DATETIME, model.login_at, offset!(+8))
+            .unwrap_or_default(),
         created_at: model.created_at,
-        created_at_str: time::Format(Layout::DateTime(None)).to_string(model.created_at),
+        created_at_str: xtime::to_string(xtime::DATETIME, model.created_at, offset!(+8))
+            .unwrap_or_default(),
     };
 
     Ok(ApiOK(Some(resp)))
@@ -147,9 +149,11 @@ pub async fn list(query: HashMap<String, String>) -> Result<ApiOK<RespList>> {
             username: model.username,
             realname: model.realname,
             login_at: model.login_at,
-            login_at_str: time::Format(Layout::DateTime(None)).to_string(model.login_at),
+            login_at_str: xtime::to_string(xtime::DATETIME, model.login_at, offset!(+8))
+                .unwrap_or_default(),
             created_at: model.created_at,
-            created_at_str: time::Format(Layout::DateTime(None)).to_string(model.created_at),
+            created_at_str: xtime::to_string(xtime::DATETIME, model.created_at, offset!(+8))
+                .unwrap_or_default(),
         };
         resp.list.push(info);
     }

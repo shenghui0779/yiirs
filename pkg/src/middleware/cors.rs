@@ -6,7 +6,7 @@ use axum::{
 };
 use http::header::{
     ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS,
-    ACCESS_CONTROL_ALLOW_ORIGIN,
+    ACCESS_CONTROL_ALLOW_ORIGIN, ACCESS_CONTROL_EXPOSE_HEADERS,
 };
 
 pub async fn handle(request: Request, next: Next) -> Response {
@@ -23,7 +23,7 @@ pub async fn handle(request: Request, next: Next) -> Response {
     );
     cors_headers.insert(
         ACCESS_CONTROL_ALLOW_HEADERS,
-        HeaderValue::from_static("Content-Type, Authorization, withCredentials"),
+        HeaderValue::from_static("content-type, authorization, withCredentials"),
     );
     // cors_headers.insert(
     //     ACCESS_CONTROL_EXPOSE_HEADERS,

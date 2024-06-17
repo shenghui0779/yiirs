@@ -6,7 +6,7 @@ use axum::{
 };
 use tower_http::trace::TraceLayer;
 
-use crate::{
+use crate::api::{
     controller::{account, auth, project},
     middleware,
 };
@@ -27,9 +27,9 @@ pub fn init() -> Router {
     Router::new()
         .route("/", get(|| async { "☺ welcome to Rust app" }))
         .nest("/v1", open.merge(auth))
-        .layer(axum::middleware::from_fn(middleware::log::handle))
-        .layer(axum::middleware::from_fn(middleware::identity::handle))
-        .layer(axum::middleware::from_fn(middleware::cors::handle))
+        .layer(axum::middleware::from_fn(pkg::middleware::log::handle))
+        .layer(axum::middleware::from_fn(pkg::middleware::identity::handle))
+        .layer(axum::middleware::from_fn(pkg::middleware::cors::handle))
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &Request<Body>| {
                 let req_id = match request
@@ -44,5 +44,5 @@ pub fn init() -> Router {
                 tracing::error_span!("request_id", id = req_id)
             }),
         )
-        .layer(axum::middleware::from_fn(middleware::req_id::handle))
+        .layer(axum::middleware::from_fn(pkg::middleware::req_id::handle))
 }

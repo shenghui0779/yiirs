@@ -1,16 +1,18 @@
 use std::collections::HashMap;
 
-use ent::{prelude::*, project};
 use sea_orm::{
     ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
 };
 use serde::{Deserialize, Serialize};
+use time::macros::offset;
 use validator::Validate;
 
-use pkg::{db, time, time::Layout, util};
+use pkg::identity::{Identity, Role};
+use pkg::result::response::{ApiErr, ApiOK, Result};
+use pkg::{db, util, xtime};
 
-use super::identity::{Identity, Role};
-use crate::result::response::{ApiErr, ApiOK, Result};
+use crate::ent::prelude::{Account, Project};
+use crate::ent::project;
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
 pub struct ReqCreate {
@@ -35,7 +37,7 @@ pub async fn create(identity: Identity, req: ReqCreate) -> Result<ApiOK<()>> {
         return Err(ApiErr::ErrPerm(Some("该编号已被使用".to_string())));
     }
 
-    let now = chrono::Local::now().timestamp();
+    let now = xtime::now(offset!(+8)).unix_timestamp();
     let model = project::ActiveModel {
         code: Set(req.code),
         name: Set(req.name),
@@ -128,7 +130,8 @@ pub async fn list(identity: Identity, query: HashMap<String, String>) -> Result<
             code: model.code,
             name: model.name,
             created_at: model.created_at,
-            created_at_str: time::Format(Layout::DateTime(None)).to_string(model.created_at),
+            created_at_str: xtime::to_string(xtime::DATETIME, model.created_at, offset!(+8))
+                .unwrap_or_default(),
         };
         resp.list.push(info);
     }
@@ -171,7 +174,8 @@ pub async fn detail(identity: Identity, project_id: u64) -> Result<ApiOK<RespDet
         code: model_proj.code,
         name: model_proj.name,
         created_at: model_proj.created_at,
-        created_at_str: time::Format(Layout::DateTime(None)).to_string(model_proj.created_at),
+        created_at_str: xtime::to_string(xtime::DATETIME, model_proj.created_at, offset!(+8))
+            .unwrap_or_default(),
         account: None,
     };
     if let Some(v) = model_account {

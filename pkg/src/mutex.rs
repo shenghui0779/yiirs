@@ -1,25 +1,34 @@
 use std::time;
 
 use nanoid::nanoid;
-use rand::Rng;
-use redis::{AsyncCommands, Commands, ExistenceCheck::NX, SetExpiry::PX};
-use tokio::time::{sleep, Duration};
+use redis::{AsyncCommands, ExistenceCheck::NX, SetExpiry::PX};
+use tokio::time::sleep;
 
 use crate::cache;
+
+pub const SCRIPT: &str = r"
+if redis.call('get', KEYS[1]) == ARGV[1] then
+    return redis.call('del', KEYS[1])
+else
+    return 0
+end
+";
 
 // 基于Redis的分布式锁
 pub struct RedisLock {
     key: String,
     token: String,
     expire: usize,
+    unlock: bool,
 }
 
 impl RedisLock {
-    pub fn new(key: String, ttl: time::Duration) -> RedisLock {
+    pub fn new(key: String, ttl: time::Duration, defer_unlock: bool) -> RedisLock {
         RedisLock {
             key,
             token: String::from(""),
             expire: ttl.as_millis() as usize,
+            unlock: defer_unlock,
         }
     }
 
@@ -29,16 +38,32 @@ impl RedisLock {
     }
 
     // 尝试获取锁
-    pub async fn try_lock(&mut self, attempts: i32) -> anyhow::Result<bool> {
-        for _ in 0..attempts {
+    pub async fn try_lock(&mut self, attempts: i32, delay: time::Duration) -> anyhow::Result<bool> {
+        for i in 0..attempts {
             let ok = self._acquire().await?;
             if ok {
                 return Ok(true);
             }
-            let delay = rand::thread_rng().gen_range(50..=200);
-            sleep(Duration::from_millis(delay)).await;
+            if i < attempts {
+                sleep(delay).await;
+            }
         }
         Ok(false)
+    }
+
+    // 释放锁
+    pub async fn unlock(&mut self) -> anyhow::Result<()> {
+        if self.token.is_empty() {
+            return Ok(());
+        }
+        let conn = cache::redis_async_pool().get().await?;
+        let script = redis::Script::new(SCRIPT);
+        script
+            .key(&self.key)
+            .arg(&self.token)
+            .invoke_async(&mut conn.into_inner())
+            .await?;
+        Ok(())
     }
 
     async fn _acquire(&mut self) -> anyhow::Result<bool> {
@@ -74,7 +99,7 @@ impl RedisLock {
 // 释放锁
 impl Drop for RedisLock {
     fn drop(&mut self) {
-        if self.token.is_empty() {
+        if !self.unlock || self.token.is_empty() {
             return;
         }
 
@@ -86,21 +111,10 @@ impl Drop for RedisLock {
             }
         };
 
-        let ret_get: redis::RedisResult<Option<String>> = conn.get(&self.key);
-        match ret_get {
-            Ok(v) => {
-                if let Some(token) = v {
-                    if token == self.token {
-                        let ret_del: redis::RedisResult<()> = conn.del(&self.key);
-                        if let Err(e) = ret_del {
-                            tracing::error!(error = ?e, "[mutex] redis del key({}) error", self.key);
-                        }
-                    }
-                }
-            }
-            Err(e) => {
-                tracing::error!(error = ?e, "[mutex] redis get key({}) error", self.key);
-            }
+        let script = redis::Script::new(SCRIPT);
+        let ret: redis::RedisResult<()> = script.key(&self.key).arg(&self.token).invoke(&mut conn);
+        if let Err(e) = ret {
+            tracing::error!(error = ?e, "[mutex] redis del key({}) error", self.key);
         }
     }
 }

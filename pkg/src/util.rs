@@ -17,6 +17,7 @@ pub fn query_page(args: &HashMap<String, String>) -> (u64, u64) {
             limit = size
         }
     }
+
     if limit > 100 {
         limit = 100
     }

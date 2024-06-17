@@ -9,12 +9,12 @@ use axum::{
 };
 use http_body_util::BodyExt;
 use hyper::HeaderMap;
+use time::macros::offset;
 
-use crate::result::response::ApiErr;
-use crate::service::identity::Identity;
+use crate::{identity::Identity, result::response::ApiErr, xtime};
 
 pub async fn handle(request: Request, next: Next) -> Response {
-    let enter_time = chrono::Local::now();
+    let enter_time = xtime::now(offset!(+8));
     let req_method = request.method().to_string();
     let req_uri = request.uri().to_string();
     let req_header = header_to_string(request.headers());
@@ -28,9 +28,7 @@ pub async fn handle(request: Request, next: Next) -> Response {
         Ok(v) => v,
     };
 
-    let duration = chrono::Local::now()
-        .signed_duration_since(enter_time)
-        .to_string();
+    let duration = (xtime::now(offset!(+8)) - enter_time).to_string();
 
     tracing::info!(
         method = req_method,
@@ -50,13 +48,11 @@ fn header_to_string(h: &HeaderMap) -> String {
 
     for k in h.keys() {
         let mut vals: Vec<String> = Vec::new();
-
         for v in h.get_all(k) {
             if let Ok(s) = v.to_str() {
                 vals.push(s.to_string())
             }
         }
-
         map.insert(k.to_string(), vals);
     }
 
@@ -77,11 +73,13 @@ async fn drain_body(request: Request, next: Next) -> Result<(Response, Option<St
         }
         None => false,
     };
+
     if !ok {
         return Ok((next.run(request).await, None));
     }
 
     let (parts, body) = request.into_parts();
+
     // this wont work if the body is an long running stream
     let bytes = match body.collect().await {
         Ok(v) => v.to_bytes(),
@@ -90,9 +88,12 @@ async fn drain_body(request: Request, next: Next) -> Result<(Response, Option<St
             return Err(ApiErr::ErrSystem(None));
         }
     };
+
     let body = std::str::from_utf8(&bytes).map(|s| s.to_string()).ok();
+
     let response = next
         .run(Request::from_parts(parts, Body::from(bytes)))
         .await;
+
     Ok((response, body))
 }

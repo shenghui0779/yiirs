@@ -1,3 +1,5 @@
+use app::api;
+use app::cmd;
 use clap::Parser;
 use pkg::{cache, config, db, logger};
 use tracing_appender::non_blocking::WorkerGuard;

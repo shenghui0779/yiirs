@@ -1,11 +1,10 @@
 use axum::{extract::Request, middleware::Next, response::Response};
 use http::header::AUTHORIZATION;
 
-use crate::service::identity::Identity;
+use crate::identity::Identity;
 
 pub async fn handle(mut request: Request, next: Next) -> Response {
     let token = request.headers().get(AUTHORIZATION);
-
     let identity = match token {
         None => Identity::empty(),
         Some(v) => match v.to_str() {
@@ -16,8 +15,6 @@ pub async fn handle(mut request: Request, next: Next) -> Response {
             }
         },
     };
-
     request.extensions_mut().insert(identity);
-
     next.run(request).await
 }

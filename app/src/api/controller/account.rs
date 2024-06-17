@@ -7,13 +7,14 @@ use axum::{
 use axum_extra::extract::WithRejection;
 use validator::Validate;
 
-use crate::result::{
+use crate::api::service::{
+    self,
+    account::{ReqCreate, RespInfo, RespList},
+};
+use pkg::identity::{Identity, Role};
+use pkg::result::{
     rejection::IRejection,
     response::{ApiErr, ApiOK, Result},
-};
-use crate::service::{
-    account::{ReqCreate, RespInfo, RespList},
-    identity::{Identity, Role},
 };
 
 pub async fn create(
@@ -23,12 +24,10 @@ pub async fn create(
     if !identity.is_role(Role::Super) {
         return Err(ApiErr::ErrPerm(None));
     }
-
     if let Err(e) = req.validate() {
         return Err(ApiErr::ErrParams(Some(e.to_string())));
     }
-
-    crate::service::account::create(req).await
+    service::account::create(req).await
 }
 
 pub async fn info(
@@ -38,8 +37,7 @@ pub async fn info(
     if !identity.is_role(Role::Super) {
         return Err(ApiErr::ErrPerm(None));
     }
-
-    crate::service::account::info(account_id).await
+    service::account::info(account_id).await
 }
 
 pub async fn list(
@@ -49,6 +47,5 @@ pub async fn list(
     if !identity.is_role(Role::Super) {
         return Err(ApiErr::ErrPerm(None));
     }
-
-    crate::service::account::list(query).await
+    service::account::list(query).await
 }
