@@ -11,15 +11,15 @@ Rust API 快速开发脚手架
 - 异步运行时使用 [tokio](https://github.com/tokio-rs/tokio)
 - 参数验证器使用 [validator](https://github.com/Keats/validator)
 - 包含基础的登录授权功能
+- 包含基于 Redis 的分布式锁
 - 包含 认证、请求日志、跨域 中间价
-- 包含基于 Redis 的简单分布式锁
 - 包含 AES、Hash、时间格式化 等实用的工具方法
 - 简单好用的 API Result 统一输出方式
 
 #### 1. 模块说明
 
-- `app` => 应用模块
-- `pkg` => 公共模块
+- app => 应用模块
+- pkg => 公共模块
 
 #### 2. 本地运行
 
