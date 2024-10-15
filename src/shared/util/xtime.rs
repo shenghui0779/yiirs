@@ -1,7 +1,7 @@
 use anyhow::Ok;
 use time::macros::offset;
 
-pub const DATE: &'static str = "[year]-[month]-[day]";
+pub const DATE: &str = "[year]-[month]-[day]";
 pub const TIME: &str = "[hour]:[minute]:[second]";
 pub const DATE_TIME: &str = "[year]-[month]-[day] [hour]:[minute]:[second]";
 
