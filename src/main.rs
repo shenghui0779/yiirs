@@ -1,8 +1,11 @@
 use app::api;
 use app::cmd;
 use clap::Parser;
-use pkg::{cache, config, db, logger};
+use shared::core::{cache, config, db, logger};
 use tracing_appender::non_blocking::WorkerGuard;
+
+pub mod app;
+pub mod shared;
 
 #[tokio::main]
 async fn main() {
@@ -13,7 +16,7 @@ async fn main() {
     if let Some(v) = cli.command {
         match v {
             cmd::Command::Hello { name } => cmd::hello::exec(name),
-            cmd::Command::Serve => api::serve().await,
+            cmd::Command::Serve => app::serve().await,
         }
     }
 }

@@ -1,4 +1,4 @@
-# api-tpl-rs
+# yiirs
 
 Rust API 快速开发脚手架
 
@@ -19,7 +19,7 @@ Rust API 快速开发脚手架
 #### 1. 模块说明
 
 - app => 应用模块
-- pkg => 公共模块
+- shared => 公共模块
 
 #### 2. 本地运行
 
