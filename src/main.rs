@@ -1,4 +1,3 @@
-use app::api;
 use app::cmd;
 use clap::Parser;
 use shared::core::{cache, config, db, logger};

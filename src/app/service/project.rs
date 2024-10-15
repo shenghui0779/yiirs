@@ -4,12 +4,11 @@ use sea_orm::{
     ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
 };
 use serde::{Deserialize, Serialize};
-use time::macros::offset;
 use validator::Validate;
 
 use crate::shared::core::db;
+use crate::shared::result;
 use crate::shared::result::response::{ApiErr, ApiOK};
-use crate::shared::result::Result;
 use crate::shared::util::identity::{Identity, Role};
 use crate::shared::util::{helper, xtime};
 
@@ -25,7 +24,7 @@ pub struct ReqCreate {
     pub remark: Option<String>,
 }
 
-pub async fn create(identity: Identity, req: ReqCreate) -> Result<ApiOK<()>> {
+pub async fn create(identity: Identity, req: ReqCreate) -> result::Result<ApiOK<()>> {
     // 校验编号唯一性
     let count = Project::find()
         .filter(project::Column::Code.eq(req.code.clone()))
@@ -72,7 +71,10 @@ pub struct RespList {
     pub list: Vec<RespInfo>,
 }
 
-pub async fn list(identity: Identity, query: HashMap<String, String>) -> Result<ApiOK<RespList>> {
+pub async fn list(
+    identity: Identity,
+    query: HashMap<String, String>,
+) -> result::Result<ApiOK<RespList>> {
     let mut builder = Project::find();
     if identity.is_role(Role::Super) {
         if let Some(account_id) = query.get("account_id") {
@@ -157,7 +159,7 @@ pub struct ProjAccount {
     pub name: String,
 }
 
-pub async fn detail(identity: Identity, project_id: u64) -> Result<ApiOK<RespDetail>> {
+pub async fn detail(identity: Identity, project_id: u64) -> result::Result<ApiOK<RespDetail>> {
     let (model_proj, model_account) = Project::find_by_id(project_id)
         .find_also_related(Account)
         .one(db::conn())

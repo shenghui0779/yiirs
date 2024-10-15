@@ -13,7 +13,6 @@ impl<'a> CBC<'a> {
             32 => Cipher::aes_256_cbc(),
             _ => return Err(anyhow!("crypto/aes: invalid key size")),
         };
-
         Ok(cipher)
     }
 

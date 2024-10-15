@@ -4,13 +4,12 @@ use sea_orm::{
     ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
 };
 use serde::{Deserialize, Serialize};
-use time::macros::offset;
 use validator::Validate;
 
 use crate::shared::core::db;
 use crate::shared::crypto::hash;
+use crate::shared::result;
 use crate::shared::result::response::{ApiErr, ApiOK};
-use crate::shared::result::Result;
 use crate::shared::util::{helper, xtime};
 
 use crate::app::model::{account, prelude::Account};
@@ -25,7 +24,7 @@ pub struct ReqCreate {
     pub realname: String,
 }
 
-pub async fn create(req: ReqCreate) -> Result<ApiOK<()>> {
+pub async fn create(req: ReqCreate) -> result::Result<ApiOK<()>> {
     let count = Account::find()
         .filter(account::Column::Username.eq(req.username.clone()))
         .count(db::conn())
@@ -71,7 +70,7 @@ pub struct RespInfo {
     pub created_at_str: String,
 }
 
-pub async fn info(account_id: u64) -> Result<ApiOK<RespInfo>> {
+pub async fn info(account_id: u64) -> result::Result<ApiOK<RespInfo>> {
     let model = Account::find_by_id(account_id)
         .one(db::conn())
         .await
@@ -101,7 +100,7 @@ pub struct RespList {
     pub list: Vec<RespInfo>,
 }
 
-pub async fn list(query: HashMap<String, String>) -> Result<ApiOK<RespList>> {
+pub async fn list(query: HashMap<String, String>) -> result::Result<ApiOK<RespList>> {
     let mut builder = Account::find();
     if let Some(username) = query.get("username") {
         if !username.is_empty() {

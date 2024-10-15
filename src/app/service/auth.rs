@@ -1,14 +1,13 @@
 use sea_orm::sea_query::Expr;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
-use time::macros::offset;
 use validator::Validate;
 
 use crate::app::model::{account, prelude::Account};
 use crate::shared::core::db;
 use crate::shared::crypto::hash;
+use crate::shared::result;
 use crate::shared::result::response::{ApiErr, ApiOK};
-use crate::shared::result::Result;
 use crate::shared::util::identity::Identity;
 use crate::shared::util::{helper, xtime};
 
@@ -27,7 +26,7 @@ pub struct RespLogin {
     pub auth_token: String,
 }
 
-pub async fn login(req: ReqLogin) -> Result<ApiOK<RespLogin>> {
+pub async fn login(req: ReqLogin) -> result::Result<ApiOK<RespLogin>> {
     let model = Account::find()
         .filter(account::Column::Username.eq(req.username))
         .one(db::conn())
@@ -77,7 +76,7 @@ pub async fn login(req: ReqLogin) -> Result<ApiOK<RespLogin>> {
     Ok(ApiOK(Some(resp)))
 }
 
-pub async fn logout(identity: Identity) -> Result<ApiOK<()>> {
+pub async fn logout(identity: Identity) -> result::Result<ApiOK<()>> {
     let ret = Account::update_many()
         .filter(account::Column::Id.eq(identity.id()))
         .col_expr(account::Column::LoginToken, Expr::value(""))

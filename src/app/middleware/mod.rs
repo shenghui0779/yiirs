@@ -1,4 +1,4 @@
-use crate::app::model::{account, prelude::Account};
+use crate::app::model::prelude::Account;
 use crate::shared::core::db;
 use crate::shared::util::identity::Identity;
 use anyhow::anyhow;
