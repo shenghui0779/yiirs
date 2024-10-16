@@ -1,8 +1,7 @@
 # yiirs
 
-Rust API 快速开发脚手架
+基于 [axum](https://github.com/tokio-rs/axum) 的 Rust API 快速开发脚手架
 
-- 路由使用 [axum](https://github.com/tokio-rs/axum)
 - ORM使用 [sea-orm](https://github.com/SeaQL/sea-orm)
 - Redis使用 [redis-rs](https://github.com/redis-rs/redis-rs)
 - 日志使用 [tracing](https://github.com/tokio-rs/tracing)
