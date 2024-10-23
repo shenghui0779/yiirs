@@ -1,17 +1,10 @@
-use std::collections::HashMap;
-
-use axum::{
-    extract::{Path, Query},
-    Extension, Json,
-};
-use axum_extra::extract::WithRejection;
+use salvo::{handler, Request};
 use validator::Validate;
 
 use crate::shared::{
     result::{
-        rejection::IRejection,
-        response::{ApiErr, ApiOK},
-        Result,
+        status::{self},
+        ApiResult,
     },
     util::identity::{Identity, Role},
 };
@@ -21,35 +14,42 @@ use crate::app::service::{
     account::{ReqCreate, RespInfo, RespList},
 };
 
-pub async fn create(
-    Extension(identity): Extension<Identity>,
-    WithRejection(Json(req), _): IRejection<Json<ReqCreate>>,
-) -> Result<ApiOK<()>> {
-    if !identity.is_role(Role::Super) {
-        return Err(ApiErr::ErrPerm(None));
+#[handler]
+pub async fn create(req: &mut Request) -> ApiResult<()> {
+    let params = req.parse_json::<ReqCreate>().await.map_err(|e| {
+        tracing::error!(error = ?e, "Error req.parse_json");
+        status::Err::Params(Some("参数解析出错".to_string()))
+    })?;
+    if let Err(e) = params.validate() {
+        return Err(status::Err::Params(Some(e.to_string())));
     }
-    if let Err(e) = req.validate() {
-        return Err(ApiErr::ErrParams(Some(e.to_string())));
+
+    let empty = Identity::empty();
+    let id = req.extensions().get::<Identity>().unwrap_or(&empty);
+    if !id.is_role(Role::Super) {
+        return Err(status::Err::Perm(None));
     }
-    service::account::create(req).await
+
+    service::account::create(params).await
 }
 
-pub async fn info(
-    Extension(identity): Extension<Identity>,
-    Path(account_id): Path<u64>,
-) -> Result<ApiOK<RespInfo>> {
-    if !identity.is_role(Role::Super) {
-        return Err(ApiErr::ErrPerm(None));
+#[handler]
+pub async fn info(req: &mut Request) -> ApiResult<RespInfo> {
+    let empty = Identity::empty();
+    let id = req.extensions().get::<Identity>().unwrap_or(&empty);
+    if !id.is_role(Role::Super) {
+        return Err(status::Err::Perm(None));
     }
+    let account_id = req.param::<u64>("account_id").unwrap_or_default();
     service::account::info(account_id).await
 }
 
-pub async fn list(
-    Extension(identity): Extension<Identity>,
-    Query(query): Query<HashMap<String, String>>,
-) -> Result<ApiOK<RespList>> {
-    if !identity.is_role(Role::Super) {
-        return Err(ApiErr::ErrPerm(None));
+#[handler]
+pub async fn list(req: &mut Request) -> ApiResult<RespList> {
+    let empty = Identity::empty();
+    let id = req.extensions().get::<Identity>().unwrap_or(&empty);
+    if !id.is_role(Role::Super) {
+        return Err(status::Err::Perm(None));
     }
-    service::account::list(query).await
+    service::account::list(req.queries()).await
 }

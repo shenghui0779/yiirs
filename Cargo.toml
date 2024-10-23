@@ -35,6 +35,8 @@ r2d2 = "0.8"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["json"] }
 tracing-appender = "0.2"
+salvo = "0.73"
+multimap = "0.10"
 hyper = "1.0"
 http = "1.0"
 http-body = "1.0"

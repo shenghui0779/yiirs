@@ -1,13 +1,8 @@
-use axum::{Extension, Json};
-use axum_extra::extract::WithRejection;
+use salvo::{handler, Request};
 use validator::Validate;
 
 use crate::shared::{
-    result::{
-        rejection::IRejection,
-        response::{ApiErr, ApiOK},
-        Result,
-    },
+    result::{status, ApiResult},
     util::identity::Identity,
 };
 
@@ -16,18 +11,24 @@ use crate::app::service::{
     auth::{ReqLogin, RespLogin},
 };
 
-pub async fn login(
-    WithRejection(Json(req), _): IRejection<Json<ReqLogin>>,
-) -> Result<ApiOK<RespLogin>> {
-    if let Err(e) = req.validate() {
-        return Err(ApiErr::ErrParams(Some(e.to_string())));
+#[handler]
+pub async fn login(req: &mut Request) -> ApiResult<RespLogin> {
+    let params = req.parse_json::<ReqLogin>().await.map_err(|e| {
+        tracing::error!(error = ?e, "Error req.parse_json");
+        status::Err::Params(Some("参数解析出错".to_string()))
+    })?;
+    if let Err(e) = params.validate() {
+        return Err(status::Err::Params(Some(e.to_string())));
     }
-    service::auth::login(req).await
+    service::auth::login(params).await
 }
 
-pub async fn logout(Extension(identity): Extension<Identity>) -> Result<ApiOK<()>> {
-    if identity.id() == 0 {
-        return Ok(ApiOK(None));
+#[handler]
+pub async fn logout(req: &mut Request) -> ApiResult<()> {
+    let empty = Identity::empty();
+    let id = req.extensions().get::<Identity>().unwrap_or(&empty);
+    if id.id() == 0 {
+        return Ok(status::OK(None));
     }
-    service::auth::logout(identity).await
+    service::auth::logout(id).await
 }

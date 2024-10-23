@@ -21,7 +21,7 @@ pub struct Identity {
 
 impl Identity {
     pub fn new(id: u64, role: i8, token: String) -> Self {
-        Self {
+        Identity {
             i: id,
             r: role,
             t: token,
@@ -29,7 +29,7 @@ impl Identity {
     }
 
     pub fn empty() -> Self {
-        Self {
+        Identity {
             i: 0,
             r: 0,
             t: String::from(""),
@@ -91,6 +91,16 @@ impl Identity {
         match role {
             Role::Normal => self.r == 1,
             Role::Super => self.r == 2,
+        }
+    }
+}
+
+impl Default for Identity {
+    fn default() -> Self {
+        Identity {
+            i: 0,
+            r: 0,
+            t: String::from(""),
         }
     }
 }

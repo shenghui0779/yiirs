@@ -1,3 +1,4 @@
+use multimap::MultiMap;
 use rand::distributions::{Alphanumeric, DistString};
 use std::{borrow::Cow, collections::HashMap};
 use validator::ValidationError;
@@ -7,7 +8,7 @@ pub fn nonce(size: usize) -> String {
     Alphanumeric.sample_string(&mut rng, size)
 }
 
-pub fn query_page(args: &HashMap<String, String>) -> (u64, u64) {
+pub fn query_page(args: &MultiMap<String, String>) -> (u64, u64) {
     let mut offset: u64 = 0;
     let mut limit: u64 = 20;
 

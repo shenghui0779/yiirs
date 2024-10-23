@@ -6,8 +6,7 @@ use validator::Validate;
 use crate::app::model::{account, prelude::Account};
 use crate::shared::core::db;
 use crate::shared::crypto::hash;
-use crate::shared::result;
-use crate::shared::result::response::{ApiErr, ApiOK};
+use crate::shared::result::{status, ApiResult};
 use crate::shared::util::identity::Identity;
 use crate::shared::util::{helper, xtime};
 
@@ -26,20 +25,20 @@ pub struct RespLogin {
     pub auth_token: String,
 }
 
-pub async fn login(req: ReqLogin) -> result::Result<ApiOK<RespLogin>> {
+pub async fn login(req: ReqLogin) -> ApiResult<RespLogin> {
     let model = Account::find()
         .filter(account::Column::Username.eq(req.username))
         .one(db::conn())
         .await
         .map_err(|e| {
             tracing::error!(error = ?e, "error find account");
-            ApiErr::ErrSystem(None)
+            status::Err::System(None)
         })?
-        .ok_or(ApiErr::ErrAuth(Some("账号不存在".to_string())))?;
+        .ok_or(status::Err::Auth(Some("账号不存在".to_string())))?;
 
     let pass = format!("{}{}", req.password, model.salt);
     if hash::md5(pass.as_bytes()) != model.password {
-        return Err(ApiErr::ErrAuth(Some("密码错误".to_string())));
+        return Err(status::Err::Auth(Some("密码错误".to_string())));
     }
 
     let now = xtime::now(None).unix_timestamp();
@@ -49,7 +48,7 @@ pub async fn login(req: ReqLogin) -> result::Result<ApiOK<RespLogin>> {
         .to_auth_token()
         .map_err(|e| {
             tracing::error!(error = ?e, "error identity encrypt");
-            ApiErr::ErrSystem(None)
+            status::Err::System(None)
         })?;
     let update_model = account::ActiveModel {
         login_at: Set(now),
@@ -64,7 +63,7 @@ pub async fn login(req: ReqLogin) -> result::Result<ApiOK<RespLogin>> {
         .await;
     if let Err(e) = ret_update {
         tracing::error!(error = ?e, "error update account");
-        return Err(ApiErr::ErrSystem(None));
+        return Err(status::Err::System(None));
     }
 
     let resp = RespLogin {
@@ -73,10 +72,10 @@ pub async fn login(req: ReqLogin) -> result::Result<ApiOK<RespLogin>> {
         auth_token,
     };
 
-    Ok(ApiOK(Some(resp)))
+    Ok(status::OK(Some(resp)))
 }
 
-pub async fn logout(identity: Identity) -> result::Result<ApiOK<()>> {
+pub async fn logout(identity: &Identity) -> ApiResult<()> {
     let ret = Account::update_many()
         .filter(account::Column::Id.eq(identity.id()))
         .col_expr(account::Column::LoginToken, Expr::value(""))
@@ -89,8 +88,8 @@ pub async fn logout(identity: Identity) -> result::Result<ApiOK<()>> {
 
     if let Err(e) = ret {
         tracing::error!(error = ?e, "error update account");
-        return Err(ApiErr::ErrSystem(None));
+        return Err(status::Err::System(None));
     }
 
-    Ok(ApiOK(None))
+    Ok(status::OK(None))
 }
