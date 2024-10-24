@@ -2,7 +2,7 @@ use salvo::{handler, Request};
 use validator::Validate;
 
 use crate::shared::{
-    result::{status, ApiResult},
+    result::{code::Code, ApiResult},
     util::identity::Identity,
 };
 
@@ -15,10 +15,10 @@ use crate::app::service::{
 pub async fn create(req: &mut Request) -> ApiResult<()> {
     let params = req.parse_json::<ReqCreate>().await.map_err(|e| {
         tracing::error!(error = ?e, "Error req.parse_json");
-        status::Err::Params(Some("参数解析出错".to_string()))
+        Code::ErrParams(Some("参数解析出错".to_string()))
     })?;
     if let Err(e) = params.validate() {
-        return Err(status::Err::Params(Some(e.to_string())));
+        return Err(Code::ErrParams(Some(e.to_string())));
     }
 
     let empty = Identity::empty();

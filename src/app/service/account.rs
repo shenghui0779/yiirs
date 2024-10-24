@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use multimap::MultiMap;
 use sea_orm::{
     ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
@@ -9,6 +7,7 @@ use validator::Validate;
 
 use crate::shared::core::db;
 use crate::shared::crypto::hash;
+use crate::shared::result::code::Code;
 use crate::shared::result::{status, ApiResult};
 use crate::shared::util::{helper, xtime};
 
@@ -31,10 +30,10 @@ pub async fn create(req: ReqCreate) -> ApiResult<()> {
         .await
         .map_err(|e| {
             tracing::error!(error = ?e, "error find account");
-            status::Err::System(None)
+            Code::ErrSystem(None)
         })?;
     if count > 0 {
-        return Err(status::Err::Perm(Some("该用户名已被使用".to_string())));
+        return Err(Code::ErrPerm(Some("该用户名已被使用".to_string())));
     }
 
     let salt = helper::nonce(16);
@@ -53,7 +52,7 @@ pub async fn create(req: ReqCreate) -> ApiResult<()> {
 
     if let Err(e) = Account::insert(model).exec(db::conn()).await {
         tracing::error!(error = ?e, "error insert account");
-        return Err(status::Err::System(None));
+        return Err(Code::ErrSystem(None));
     }
 
     Ok(status::OK(None))
@@ -76,9 +75,9 @@ pub async fn info(account_id: u64) -> ApiResult<RespInfo> {
         .await
         .map_err(|e| {
             tracing::error!(error = ?e, "Error Account::find_by_id");
-            status::Err::System(None)
+            Code::ErrSystem(None)
         })?
-        .ok_or(status::Err::NotFound(Some("账号不存在".to_string())))?;
+        .ok_or(Code::ErrEmpty(Some("账号不存在".to_string())))?;
 
     let resp = RespInfo {
         id: model.id,
@@ -121,7 +120,7 @@ pub async fn list(query: &MultiMap<String, String>) -> ApiResult<RespList> {
             .await
             .map_err(|e| {
                 tracing::error!(error = ?e, "error count account");
-                status::Err::System(None)
+                Code::ErrSystem(None)
             })?
             .unwrap_or_default();
     }
@@ -134,7 +133,7 @@ pub async fn list(query: &MultiMap<String, String>) -> ApiResult<RespList> {
         .await
         .map_err(|e| {
             tracing::error!(error = ?e, "error find account");
-            status::Err::System(None)
+            Code::ErrSystem(None)
         })?;
     let mut resp = RespList {
         total,

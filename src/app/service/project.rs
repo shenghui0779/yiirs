@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use multimap::MultiMap;
 use sea_orm::{
     ColumnTrait, EntityTrait, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
@@ -8,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::shared::core::db;
+use crate::shared::result::code::Code;
 use crate::shared::result::{status, ApiResult};
 use crate::shared::util::identity::{Identity, Role};
 use crate::shared::util::{helper, xtime};
@@ -32,10 +31,10 @@ pub async fn create(id: &Identity, req: ReqCreate) -> ApiResult<()> {
         .await
         .map_err(|e| {
             tracing::error!(error = ?e, "error find project");
-            status::Err::System(None)
+            Code::ErrSystem(None)
         })?;
     if count > 0 {
-        return Err(status::Err::Perm(Some("该编号已被使用".to_string())));
+        return Err(Code::ErrPerm(Some("该编号已被使用".to_string())));
     }
 
     let now = xtime::now(None).unix_timestamp();
@@ -50,7 +49,7 @@ pub async fn create(id: &Identity, req: ReqCreate) -> ApiResult<()> {
     };
     if let Err(e) = Project::insert(model).exec(db::conn()).await {
         tracing::error!(error = ?e, "error insert project");
-        return Err(status::Err::System(None));
+        return Err(Code::ErrSystem(None));
     }
 
     Ok(status::OK(None))
@@ -106,7 +105,7 @@ pub async fn list(id: &Identity, query: &MultiMap<String, String>) -> ApiResult<
             .await
             .map_err(|e| {
                 tracing::error!(error = ?e, "error count project");
-                status::Err::System(None)
+                Code::ErrSystem(None)
             })?
             .unwrap_or_default();
     }
@@ -119,7 +118,7 @@ pub async fn list(id: &Identity, query: &MultiMap<String, String>) -> ApiResult<
         .await
         .map_err(|e| {
             tracing::error!(error = ?e, "error find project");
-            status::Err::System(None)
+            Code::ErrSystem(None)
         })?;
     let mut resp = RespList {
         total,
@@ -163,11 +162,11 @@ pub async fn detail(id: &Identity, project_id: u64) -> ApiResult<RespDetail> {
         .await
         .map_err(|e| {
             tracing::error!(error = ?e, "error find project");
-            status::Err::System(None)
+            Code::ErrSystem(None)
         })?
-        .ok_or(status::Err::NotFound(Some("项目不存在".to_string())))?;
+        .ok_or(Code::ErrEmpty(Some("项目不存在".to_string())))?;
     if !id.is_role(Role::Super) && id.id() != model_proj.account_id {
-        return Err(status::Err::Perm(None));
+        return Err(Code::ErrPerm(None));
     }
 
     let mut resp = RespDetail {
