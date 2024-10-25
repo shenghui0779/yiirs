@@ -3,12 +3,11 @@ use std::collections::HashMap;
 use http::header::CONTENT_TYPE;
 use http_body_util::BodyExt;
 use hyper::HeaderMap;
-use salvo::{async_trait, writing::Json, Depot, FlowCtrl, Handler, Request, Response};
-
-use crate::shared::{
-    result::code::Code,
-    util::{identity::Identity, xtime},
+use salvo::{
+    async_trait, http::ReqBody, writing::Json, Depot, FlowCtrl, Handler, Request, Response,
 };
+
+use crate::shared::{result::code::Code, util::xtime};
 
 pub struct Log;
 
@@ -23,18 +22,14 @@ impl Handler for Log {
     async fn handle(
         &self,
         req: &mut Request,
-        _depot: &mut Depot,
+        depot: &mut Depot,
         resp: &mut Response,
         ctrl: &mut FlowCtrl,
     ) {
         let enter_time = xtime::now(None);
         let req_method = req.method().to_string();
         let req_uri = req.uri().to_string();
-        // let req_header = header_to_string(request.headers());
-        let id = match req.extensions().get::<Identity>() {
-            Some(v) => v.to_string(),
-            None => String::from("<none>"),
-        };
+        // let req_header = header_to_string(req.headers());
         // 获取body
         let (body, code) = drain_body(req).await;
         if let Some(v) = code {
@@ -42,13 +37,13 @@ impl Handler for Log {
             ctrl.skip_rest();
             return;
         }
+        ctrl.call_next(req, depot, resp).await;
         // 请求时长
         let duration = (xtime::now(None) - enter_time).to_string();
         tracing::info!(
             method = req_method,
             uri = req_uri,
             // headers = req_header,
-            identity = id,
             body = body,
             duration = duration,
             "Request info"
@@ -84,18 +79,17 @@ async fn drain_body(req: &mut Request) -> (Option<String>, Option<Code>) {
     if !ok {
         return (None, None);
     }
-    // this wont work if the body is an long running stream
-    let bytes = match req.body_mut().collect().await {
+    // 取出body
+    let body = req.take_body();
+    let bytes = match body.collect().await {
         Ok(v) => v.to_bytes(),
         Err(e) => {
             tracing::error!(error = ?e, "Error body.collect");
             return (None, Some(Code::ErrSystem(None)));
         }
     };
-    let body = std::str::from_utf8(&bytes).map(|s| s.to_string()).ok();
-    (body, None)
-    // let response = next
-    //     .run(Request::from_parts(parts, Body::from(bytes)))
-    //     .await;
-    // Ok((response, body))
+    let body_str = std::str::from_utf8(&bytes).map(|s| s.to_string()).ok();
+    // 重置body
+    req.replace_body(ReqBody::Once(bytes));
+    (body_str, None)
 }
