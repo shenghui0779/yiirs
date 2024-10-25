@@ -37,7 +37,7 @@ impl Code {
 
 #[async_trait]
 impl Writer for Code {
-    async fn write(mut self, _req: &mut Request, _depot: &mut Depot, res: &mut Response) {
-        res.render(Json(self.to_status()));
+    async fn write(mut self, _req: &mut Request, _depot: &mut Depot, resp: &mut Response) {
+        resp.render(Json(self.to_status()));
     }
 }

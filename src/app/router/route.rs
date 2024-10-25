@@ -1,35 +1,40 @@
-use axum::{
-    routing::{get, post},
-    Router,
-};
+use salvo::{handler, Router};
 
 use crate::{
-    app::{
-        self,
-        api::{account, auth, project},
-    },
-    shared::middleware,
+    app::{self, api},
+    shared,
 };
 
 pub fn init() -> Router {
     // 开放
-    let open = Router::new().route("/login", post(auth::login));
-
+    let open = Router::with_path("login").post(api::auth::login);
     // 需授权
     let auth = Router::new()
-        .route("/logout", get(auth::logout))
-        .route("/accounts", get(account::list).post(account::create))
-        .route("/accounts/:account_id", get(account::info))
-        .route("/projects", get(project::list).post(project::create))
-        .route("/projects/:project_id", get(project::detail))
-        .layer(axum::middleware::from_fn(app::middleware::auth::handle));
-
+        .hoop(app::middleware::auth::Auth::new())
+        .push(Router::with_path("logout").get(api::auth::logout))
+        .push(
+            Router::with_path("accounts")
+                .get(api::account::list)
+                .post(api::account::create)
+                .push(Router::with_path("<account_id>").get(api::account::info)),
+        )
+        .push(
+            Router::with_path("projects")
+                .get(api::project::list)
+                .post(api::project::create)
+                .push(Router::with_path("<project_id>").get(api::project::detail)),
+        );
     // 路由组册
     Router::new()
-        .route("/", get(|| async { "☺ welcome to Rust app" }))
-        .nest("/v1", open.merge(auth))
-        .layer(axum::middleware::from_fn(middleware::log::handle))
-        .layer(axum::middleware::from_fn(middleware::identity::handle))
-        .layer(axum::middleware::from_fn(middleware::cors::handle))
-        .layer(axum::middleware::from_fn(middleware::trace_id::handle))
+        .get(root)
+        .path("v1")
+        .hoop(shared::middleware::trace::Trace::new())
+        .hoop(shared::middleware::log::Log::new())
+        .push(open)
+        .push(auth)
+}
+
+#[handler]
+async fn root() -> &'static str {
+    "☺ welcome to Rust app"
 }

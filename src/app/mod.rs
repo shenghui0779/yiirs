@@ -1,3 +1,5 @@
+use salvo::prelude::*;
+
 use crate::shared::core::config;
 
 pub mod api;
@@ -8,14 +10,9 @@ pub mod router;
 pub mod service;
 
 pub async fn serve() {
-    // run it with hyper on localhost:8000
     let addr = config::global().get_int("app.port").unwrap_or(8000);
-
-    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", addr))
-        .await
-        .unwrap();
-
+    let acceptor = TcpListener::new(format!("0.0.0.0:{}", addr)).bind().await;
+    let router = router::route::init();
     tracing::info!("listening on {}", addr);
-
-    axum::serve(listener, router::route::init()).await.unwrap();
+    Server::new(acceptor).serve(router).await;
 }

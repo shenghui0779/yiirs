@@ -93,6 +93,16 @@ impl Identity {
             Role::Super => self.r == 2,
         }
     }
+
+    pub fn to_string(&self) -> String {
+        if self.i == 0 {
+            return "<none>".to_string();
+        }
+        if self.r == 0 {
+            return format!("id:{}|token:{}", self.i, self.t);
+        }
+        format!("id:{}|role:{}|token:{}", self.i, self.r, self.t)
+    }
 }
 
 impl Default for Identity {
@@ -107,12 +117,6 @@ impl Default for Identity {
 
 impl Display for Identity {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.i == 0 {
-            return write!(f, "<none>");
-        }
-        if self.r == 0 {
-            return write!(f, "id:{}|token:{}", self.i, self.t);
-        }
-        write!(f, "id:{}|role:{}|token:{}", self.i, self.r, self.t)
+        write!(f, "{}", self.to_string())
     }
 }

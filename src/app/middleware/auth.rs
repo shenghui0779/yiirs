@@ -1,9 +1,6 @@
-use salvo::{async_trait, Depot, FlowCtrl, Handler, Request, Response};
+use salvo::{async_trait, writing::Json, Depot, FlowCtrl, Handler, Request, Response};
 
-use crate::shared::{
-    result::{status, ApiResult},
-    util::identity::Identity,
-};
+use crate::shared::{result::code::Code, util::identity::Identity};
 
 use super::auth_check;
 
@@ -17,14 +14,19 @@ impl Auth {
 
 #[async_trait]
 impl Handler for Auth {
-    async fn handle(&self, req: &mut Request) -> ApiResult<()> {
-        let identity = req.extensions().get::<Identity>();
-        match identity {
-            None => return Err(status::Err::Auth(None)),
-            Some(v) => match auth_check(v).await {
-                Ok(_) => Ok(status::OK(None)),
-                Err(e) => return Err(status::Err::Auth(Some(e.to_string()))),
-            },
+    async fn handle(
+        &self,
+        req: &mut Request,
+        _depot: &mut Depot,
+        resp: &mut Response,
+        ctrl: &mut FlowCtrl,
+    ) {
+        let empty = Identity::empty();
+        let id = req.extensions().get::<Identity>().unwrap_or(&empty);
+        if let Err(e) = auth_check(id).await {
+            resp.render(Json(Code::ErrAuth(Some(e.to_string())).to_status()));
+            ctrl.skip_rest();
+            return;
         }
     }
 }
