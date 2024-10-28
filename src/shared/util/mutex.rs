@@ -23,12 +23,12 @@ pub struct RedisLock {
 }
 
 impl RedisLock {
-    pub fn new(key: String, ttl: time::Duration, defer_unlock: bool) -> RedisLock {
+    pub fn new(key: String, ttl: time::Duration, auto_unlock: bool) -> RedisLock {
         RedisLock {
             key,
             token: String::from(""),
             expire: ttl.as_millis() as u64,
-            unlock: defer_unlock,
+            unlock: auto_unlock,
         }
     }
 
@@ -38,14 +38,18 @@ impl RedisLock {
     }
 
     // 尝试获取锁
-    pub async fn try_lock(&mut self, attempts: i32, delay: time::Duration) -> anyhow::Result<bool> {
+    pub async fn try_lock(
+        &mut self,
+        attempts: i32,
+        interval: time::Duration,
+    ) -> anyhow::Result<bool> {
         for i in 0..attempts {
             let ok = self._acquire().await?;
             if ok {
                 return Ok(true);
             }
             if i < attempts {
-                sleep(delay).await;
+                sleep(interval).await;
             }
         }
         Ok(false)

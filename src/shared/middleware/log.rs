@@ -12,6 +12,7 @@ use crate::shared::{result::code::Code, util::xtime};
 pub struct Log;
 
 impl Log {
+    #[inline]
     pub fn new() -> Self {
         Log {}
     }

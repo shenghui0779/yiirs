@@ -1,3 +1,5 @@
+use std::panic;
+
 use app::cmd;
 use clap::Parser;
 use shared::core::{cache, config, db, logger};
@@ -11,6 +13,10 @@ async fn main() {
     let cli = cmd::Cli::parse();
     // _guard 必须在 main 函数中才能使日志生效
     let _guard = init(&cli.config).await;
+    // catch panic
+    panic::set_hook(Box::new(|info| {
+        tracing::error!(error = %info, "panic occurred");
+    }));
     // 处理subcommand
     if let Some(v) = cli.command {
         match v {

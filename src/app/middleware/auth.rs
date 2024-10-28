@@ -7,6 +7,7 @@ use super::auth_check;
 pub struct Auth;
 
 impl Auth {
+    #[inline]
     pub fn new() -> Self {
         Auth {}
     }
