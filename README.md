@@ -2,7 +2,7 @@
 
 Rust API 快速开发脚手架
 
-- 路由使用 [axum](https://github.com/tokio-rs/axum)
+- 路由使用 [salvo](https://github.com/salvo-rs/salvo)
 - ORM使用 [sea-orm](https://github.com/SeaQL/sea-orm)
 - Redis使用 [redis-rs](https://github.com/redis-rs/redis-rs)
 - 日志使用 [tracing](https://github.com/tokio-rs/tracing)
@@ -12,8 +12,8 @@ Rust API 快速开发脚手架
 - 参数验证器使用 [validator](https://github.com/Keats/validator)
 - 包含基础的登录授权功能
 - 包含基于 Redis 的分布式锁
-- 包含 认证、请求日志、跨域 中间价
 - 包含 AES、Hash、时间格式化 等实用封装
+- 包含 Trace、认证、请求日志 中间价
 - 简单好用的 API Result 统一输出方式
 
 #### 1. 模块说明
