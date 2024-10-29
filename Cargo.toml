@@ -40,7 +40,12 @@ hyper = "1.0"
 http = "1.0"
 http-body = "1.0"
 http-body-util = "0.1"
-salvo = { version = "0.73", features = ["cors"] }
+salvo = { version = "0.73", features = [
+    "cors",
+    "http1",
+    "http2",
+    "http2-cleartext",
+] }
 multimap = "0.10"
 nanoid = "0.4"
 validator = { version = "0.16", features = ["derive"] }
