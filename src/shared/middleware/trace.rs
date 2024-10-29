@@ -5,7 +5,7 @@ use tracing::Instrument;
 
 use crate::shared::{crypto::hash, util::identity::Identity};
 
-pub const TRACE_ID: &str = "x-trace-id";
+pub const TRACE_ID: HeaderName = HeaderName::from_static("x-trace-id");
 
 pub struct Trace;
 
@@ -54,7 +54,7 @@ impl Handler for Trace {
         ctrl.call_next(req, depot, resp).instrument(span).await;
         // 设置返回header
         resp.headers_mut().insert(
-            HeaderName::from_static(TRACE_ID),
+            TRACE_ID,
             HeaderValue::from_str(&trace_id).unwrap_or(HeaderValue::from_static("")),
         );
     }
@@ -63,7 +63,7 @@ impl Handler for Trace {
 fn gen_trace_id(req: &mut Request, hostname: &str) -> String {
     let id = hash::md5(format!("{}/{}", hostname, nanoid!(32)).as_bytes());
     req.headers_mut().insert(
-        HeaderName::from_static(TRACE_ID),
+        TRACE_ID,
         HeaderValue::from_str(&id).unwrap_or(HeaderValue::from_static("")),
     );
     id

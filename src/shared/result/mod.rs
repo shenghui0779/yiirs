@@ -1,4 +1,4 @@
 pub mod code;
-pub mod status;
+pub mod reply;
 
-pub type ApiResult<T> = Result<status::OK<T>, code::Code>;
+pub type ApiResult<T> = Result<reply::OK<T>, code::Code>;

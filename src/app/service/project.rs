@@ -7,7 +7,7 @@ use validator::Validate;
 
 use crate::shared::core::db;
 use crate::shared::result::code::Code;
-use crate::shared::result::{status, ApiResult};
+use crate::shared::result::{reply, ApiResult};
 use crate::shared::util::identity::{Identity, Role};
 use crate::shared::util::{helper, xtime};
 
@@ -52,7 +52,7 @@ pub async fn create(id: &Identity, req: ReqCreate) -> ApiResult<()> {
         return Err(Code::ErrSystem(None));
     }
 
-    Ok(status::OK(None))
+    Ok(reply::OK(None))
 }
 
 #[derive(Debug, Serialize)]
@@ -136,7 +136,7 @@ pub async fn list(id: &Identity, query: &MultiMap<String, String>) -> ApiResult<
         resp.list.push(info);
     }
 
-    Ok(status::OK(Some(resp)))
+    Ok(reply::OK(Some(resp)))
 }
 
 #[derive(Debug, Serialize)]
@@ -185,5 +185,5 @@ pub async fn detail(id: &Identity, project_id: u64) -> ApiResult<RespDetail> {
         })
     }
 
-    Ok(status::OK(Some(resp)))
+    Ok(reply::OK(Some(resp)))
 }

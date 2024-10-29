@@ -3,7 +3,7 @@ use salvo::{Depot, Request, Response, Writer};
 use serde::Serialize;
 
 #[derive(Serialize)]
-pub struct Status<T>
+pub struct Reply<T>
 where
     T: Serialize,
 {
@@ -22,8 +22,8 @@ impl<T> OK<T>
 where
     T: Serialize + std::marker::Send,
 {
-    pub fn to_status(self) -> Status<T> {
-        Status {
+    pub fn to_reply(self) -> Reply<T> {
+        Reply {
             code: 0,
             err: false,
             msg: String::from("OK"),
@@ -38,6 +38,6 @@ where
     T: Serialize + std::marker::Send,
 {
     async fn write(mut self, _req: &mut Request, _depot: &mut Depot, resp: &mut Response) {
-        resp.render(Json(self.to_status()));
+        resp.render(Json(self.to_reply()));
     }
 }

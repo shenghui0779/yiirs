@@ -8,7 +8,7 @@ use validator::Validate;
 use crate::shared::core::db;
 use crate::shared::crypto::hash;
 use crate::shared::result::code::Code;
-use crate::shared::result::{status, ApiResult};
+use crate::shared::result::{reply, ApiResult};
 use crate::shared::util::{helper, xtime};
 
 use crate::app::model::{account, prelude::Account};
@@ -55,7 +55,7 @@ pub async fn create(req: ReqCreate) -> ApiResult<()> {
         return Err(Code::ErrSystem(None));
     }
 
-    Ok(status::OK(None))
+    Ok(reply::OK(None))
 }
 
 #[derive(Debug, Serialize)]
@@ -90,7 +90,7 @@ pub async fn info(account_id: u64) -> ApiResult<RespInfo> {
             .unwrap_or_default(),
     };
 
-    Ok(status::OK(Some(resp)))
+    Ok(reply::OK(Some(resp)))
 }
 
 #[derive(Debug, Serialize)]
@@ -154,5 +154,5 @@ pub async fn list(query: &MultiMap<String, String>) -> ApiResult<RespList> {
         resp.list.push(info);
     }
 
-    Ok(status::OK(Some(resp)))
+    Ok(reply::OK(Some(resp)))
 }

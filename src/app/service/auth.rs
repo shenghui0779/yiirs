@@ -7,7 +7,7 @@ use crate::app::model::{account, prelude::Account};
 use crate::shared::core::db;
 use crate::shared::crypto::hash;
 use crate::shared::result::code::Code;
-use crate::shared::result::{status, ApiResult};
+use crate::shared::result::{reply, ApiResult};
 use crate::shared::util::identity::Identity;
 use crate::shared::util::{helper, xtime};
 
@@ -73,7 +73,7 @@ pub async fn login(req: ReqLogin) -> ApiResult<RespLogin> {
         auth_token,
     };
 
-    Ok(status::OK(Some(resp)))
+    Ok(reply::OK(Some(resp)))
 }
 
 pub async fn logout(identity: &Identity) -> ApiResult<()> {
@@ -92,5 +92,5 @@ pub async fn logout(identity: &Identity) -> ApiResult<()> {
         return Err(Code::ErrSystem(None));
     }
 
-    Ok(status::OK(None))
+    Ok(reply::OK(None))
 }

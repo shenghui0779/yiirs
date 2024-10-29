@@ -34,7 +34,7 @@ impl Handler for Log {
         // 获取body
         let (body, code) = drain_body(req).await;
         if let Some(v) = code {
-            resp.render(Json(v.to_status()));
+            resp.render(Json(v.to_reply()));
             ctrl.skip_rest();
             return;
         }

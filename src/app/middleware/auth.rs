@@ -25,7 +25,7 @@ impl Handler for Auth {
         let empty = Identity::empty();
         let id = req.extensions().get::<Identity>().unwrap_or(&empty);
         if let Err(e) = auth_check(id).await {
-            resp.render(Json(Code::ErrAuth(Some(e.to_string())).to_status()));
+            resp.render(Json(Code::ErrAuth(Some(e.to_string())).to_reply()));
             ctrl.skip_rest();
             return;
         }

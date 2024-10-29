@@ -27,7 +27,7 @@ impl Handler for CatchPanic {
             .catch_unwind()
             .await
         {
-            resp.render(Json(Code::ErrSystem(None).to_status()));
+            resp.render(Json(Code::ErrSystem(None).to_reply()));
         }
     }
 }

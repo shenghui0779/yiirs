@@ -1,7 +1,7 @@
 use salvo::prelude::*;
 use salvo::{Depot, Request, Response, Writer};
 
-use super::status::Status;
+use super::reply::Reply;
 
 pub enum Code {
     New(i32, String),
@@ -15,7 +15,7 @@ pub enum Code {
 }
 
 impl Code {
-    pub fn to_status(self) -> Status<()> {
+    pub fn to_reply(self) -> Reply<()> {
         let (code, msg) = match self {
             Code::New(code, msg) => (code, msg),
             Code::ErrParams(msg) => (10000, msg.unwrap_or(String::from("参数错误"))),
@@ -26,7 +26,7 @@ impl Code {
             Code::ErrData(msg) => (60000, msg.unwrap_or(String::from("数据异常"))),
             Code::ErrService(msg) => (70000, msg.unwrap_or(String::from("服务异常"))),
         };
-        Status {
+        Reply {
             code,
             err: true,
             msg,
@@ -38,6 +38,6 @@ impl Code {
 #[async_trait]
 impl Writer for Code {
     async fn write(mut self, _req: &mut Request, _depot: &mut Depot, resp: &mut Response) {
-        resp.render(Json(self.to_status()));
+        resp.render(Json(self.to_reply()));
     }
 }

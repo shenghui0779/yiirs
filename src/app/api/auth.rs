@@ -2,7 +2,7 @@ use salvo::{handler, Request};
 use validator::Validate;
 
 use crate::shared::{
-    result::{code::Code, status, ApiResult},
+    result::{code::Code, reply, ApiResult},
     util::identity::Identity,
 };
 
@@ -28,7 +28,7 @@ pub async fn logout(req: &mut Request) -> ApiResult<()> {
     let empty = Identity::empty();
     let id = req.extensions().get::<Identity>().unwrap_or(&empty);
     if id.id() == 0 {
-        return Ok(status::OK(None));
+        return Ok(reply::OK(None));
     }
     service::auth::logout(id).await
 }
