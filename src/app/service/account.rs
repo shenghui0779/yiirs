@@ -8,8 +8,8 @@ use validator::Validate;
 
 use crate::shared::core::db;
 use crate::shared::crypto::hash;
-use crate::shared::result;
-use crate::shared::result::response::{ApiErr, ApiOK};
+use crate::shared::result::code::Code;
+use crate::shared::result::{reply, ApiResult};
 use crate::shared::util::{helper, xtime};
 
 use crate::app::model::{account, prelude::Account};
@@ -24,17 +24,17 @@ pub struct ReqCreate {
     pub realname: String,
 }
 
-pub async fn create(req: ReqCreate) -> result::Result<ApiOK<()>> {
+pub async fn create(req: ReqCreate) -> ApiResult<()> {
     let count = Account::find()
         .filter(account::Column::Username.eq(req.username.clone()))
         .count(db::conn())
         .await
         .map_err(|e| {
             tracing::error!(error = ?e, "error find account");
-            ApiErr::ErrSystem(None)
+            Code::ErrSystem(None)
         })?;
     if count > 0 {
-        return Err(ApiErr::ErrPerm(Some("该用户名已被使用".to_string())));
+        return Err(Code::ErrPerm(Some("该用户名已被使用".to_string())));
     }
 
     let salt = helper::nonce(16);
@@ -53,10 +53,10 @@ pub async fn create(req: ReqCreate) -> result::Result<ApiOK<()>> {
 
     if let Err(e) = Account::insert(model).exec(db::conn()).await {
         tracing::error!(error = ?e, "error insert account");
-        return Err(ApiErr::ErrSystem(None));
+        return Err(Code::ErrSystem(None));
     }
 
-    Ok(ApiOK(None))
+    Ok(reply::OK(None))
 }
 
 #[derive(Debug, Serialize)]
@@ -70,15 +70,15 @@ pub struct RespInfo {
     pub created_at_str: String,
 }
 
-pub async fn info(account_id: u64) -> result::Result<ApiOK<RespInfo>> {
+pub async fn info(account_id: u64) -> ApiResult<RespInfo> {
     let model = Account::find_by_id(account_id)
         .one(db::conn())
         .await
         .map_err(|e| {
             tracing::error!(error = ?e, "error find account");
-            ApiErr::ErrSystem(None)
+            Code::ErrSystem(None)
         })?
-        .ok_or(ApiErr::ErrNotFound(Some("账号不存在".to_string())))?;
+        .ok_or(Code::ErrEmpty(Some("账号不存在".to_string())))?;
 
     let resp = RespInfo {
         id: model.id,
@@ -91,7 +91,7 @@ pub async fn info(account_id: u64) -> result::Result<ApiOK<RespInfo>> {
             .unwrap_or_default(),
     };
 
-    Ok(ApiOK(Some(resp)))
+    Ok(reply::OK(Some(resp)))
 }
 
 #[derive(Debug, Serialize)]
@@ -100,7 +100,7 @@ pub struct RespList {
     pub list: Vec<RespInfo>,
 }
 
-pub async fn list(query: HashMap<String, String>) -> result::Result<ApiOK<RespList>> {
+pub async fn list(query: HashMap<String, String>) -> ApiResult<RespList> {
     let mut builder = Account::find();
     if let Some(username) = query.get("username") {
         if !username.is_empty() {
@@ -121,7 +121,7 @@ pub async fn list(query: HashMap<String, String>) -> result::Result<ApiOK<RespLi
             .await
             .map_err(|e| {
                 tracing::error!(error = ?e, "error count account");
-                ApiErr::ErrSystem(None)
+                Code::ErrSystem(None)
             })?
             .unwrap_or_default();
     }
@@ -134,7 +134,7 @@ pub async fn list(query: HashMap<String, String>) -> result::Result<ApiOK<RespLi
         .await
         .map_err(|e| {
             tracing::error!(error = ?e, "error find account");
-            ApiErr::ErrSystem(None)
+            Code::ErrSystem(None)
         })?;
     let mut resp = RespList {
         total,
@@ -155,5 +155,5 @@ pub async fn list(query: HashMap<String, String>) -> result::Result<ApiOK<RespLi
         resp.list.push(info);
     }
 
-    Ok(ApiOK(Some(resp)))
+    Ok(reply::OK(Some(resp)))
 }

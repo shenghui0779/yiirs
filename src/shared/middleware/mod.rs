@@ -1,4 +1,3 @@
-pub mod cors;
-pub mod identity;
+pub mod catch_panic;
 pub mod log;
-pub mod trace_id;
+pub mod trace;

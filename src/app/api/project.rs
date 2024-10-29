@@ -8,11 +8,7 @@ use axum_extra::extract::WithRejection;
 use validator::Validate;
 
 use crate::shared::{
-    result::{
-        rejection::IRejection,
-        response::{ApiErr, ApiOK},
-        Result,
-    },
+    result::{code::Code, rejection::IRejection, ApiResult},
     util::identity::Identity,
 };
 
@@ -24,9 +20,9 @@ use crate::app::service::{
 pub async fn create(
     Extension(identity): Extension<Identity>,
     WithRejection(Json(req), _): IRejection<Json<ReqCreate>>,
-) -> Result<ApiOK<()>> {
+) -> ApiResult<()> {
     if let Err(e) = req.validate() {
-        return Err(ApiErr::ErrParams(Some(e.to_string())));
+        return Err(Code::ErrParams(Some(e.to_string())));
     }
     service::project::create(identity, req).await
 }
@@ -34,13 +30,13 @@ pub async fn create(
 pub async fn list(
     Extension(identity): Extension<Identity>,
     Query(query): Query<HashMap<String, String>>,
-) -> Result<ApiOK<RespList>> {
+) -> ApiResult<RespList> {
     service::project::list(identity, query).await
 }
 
 pub async fn detail(
     Extension(identity): Extension<Identity>,
     Path(project_id): Path<u64>,
-) -> Result<ApiOK<RespDetail>> {
+) -> ApiResult<RespDetail> {
     service::project::detail(identity, project_id).await
 }

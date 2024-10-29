@@ -10,20 +10,13 @@ use axum::{
 use http_body_util::BodyExt;
 use hyper::HeaderMap;
 
-use crate::shared::{
-    result::response::ApiErr,
-    util::{identity::Identity, xtime},
-};
+use crate::shared::{result::code::Code, util::xtime};
 
 pub async fn handle(request: Request, next: Next) -> Response {
     let enter_time = xtime::now(None);
     let req_method = request.method().to_string();
     let req_uri = request.uri().to_string();
     // let req_header = header_to_string(request.headers());
-    let identity = match request.extensions().get::<Identity>() {
-        Some(v) => v.to_string(),
-        None => String::from("<none>"),
-    };
     // 获取body
     let (response, body) = match drain_body(request, next).await {
         Err(e) => return e.into_response(),
@@ -35,7 +28,6 @@ pub async fn handle(request: Request, next: Next) -> Response {
         method = req_method,
         uri = req_uri,
         // headers = req_header,
-        identity = identity,
         body = body,
         duration = duration,
         "Request info"
@@ -61,7 +53,7 @@ fn header_to_string(h: &HeaderMap) -> String {
     }
 }
 
-async fn drain_body(request: Request, next: Next) -> Result<(Response, Option<String>), ApiErr> {
+async fn drain_body(request: Request, next: Next) -> Result<(Response, Option<String>), Code> {
     let ok = match request
         .headers()
         .get(CONTENT_TYPE)
@@ -82,7 +74,7 @@ async fn drain_body(request: Request, next: Next) -> Result<(Response, Option<St
         Ok(v) => v.to_bytes(),
         Err(e) => {
             tracing::error!(error = ?e, "Error body.collect");
-            return Err(ApiErr::ErrSystem(None));
+            return Err(Code::ErrSystem(None));
         }
     };
     let body = std::str::from_utf8(&bytes).map(|s| s.to_string()).ok();

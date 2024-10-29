@@ -11,8 +11,8 @@
 - 参数验证器使用 [validator](https://github.com/Keats/validator)
 - 包含基础的登录授权功能
 - 包含基于 Redis 的分布式锁
-- 包含 认证、请求日志、跨域 中间价
 - 包含 AES、Hash、时间格式化 等实用封装
+- 包含 Trace、认证、请求日志、Panic捕获 中间价
 - 简单好用的 API Result 统一输出方式
 
 #### 1. 模块说明
@@ -30,5 +30,5 @@ demo_rs.sql
 mv config.toml.example config.toml
 
 # 启动服务
-cargo run -- serve
+cargo run serve
 ```

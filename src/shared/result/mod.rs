@@ -1,7 +1,7 @@
-use response::ApiErr;
+use code::Code;
 
+pub mod code;
 pub mod rejection;
-pub mod response;
-pub mod status;
+pub mod reply;
 
-pub type Result<T> = std::result::Result<T, ApiErr>;
+pub type ApiResult<T> = Result<reply::OK<T>, Code>;

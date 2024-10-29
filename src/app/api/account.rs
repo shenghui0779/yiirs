@@ -8,11 +8,7 @@ use axum_extra::extract::WithRejection;
 use validator::Validate;
 
 use crate::shared::{
-    result::{
-        rejection::IRejection,
-        response::{ApiErr, ApiOK},
-        Result,
-    },
+    result::{code::Code, rejection::IRejection, ApiResult},
     util::identity::{Identity, Role},
 };
 
@@ -24,12 +20,12 @@ use crate::app::service::{
 pub async fn create(
     Extension(identity): Extension<Identity>,
     WithRejection(Json(req), _): IRejection<Json<ReqCreate>>,
-) -> Result<ApiOK<()>> {
+) -> ApiResult<()> {
     if !identity.is_role(Role::Super) {
-        return Err(ApiErr::ErrPerm(None));
+        return Err(Code::ErrPerm(None));
     }
     if let Err(e) = req.validate() {
-        return Err(ApiErr::ErrParams(Some(e.to_string())));
+        return Err(Code::ErrParams(Some(e.to_string())));
     }
     service::account::create(req).await
 }
@@ -37,9 +33,9 @@ pub async fn create(
 pub async fn info(
     Extension(identity): Extension<Identity>,
     Path(account_id): Path<u64>,
-) -> Result<ApiOK<RespInfo>> {
+) -> ApiResult<RespInfo> {
     if !identity.is_role(Role::Super) {
-        return Err(ApiErr::ErrPerm(None));
+        return Err(Code::ErrPerm(None));
     }
     service::account::info(account_id).await
 }
@@ -47,9 +43,9 @@ pub async fn info(
 pub async fn list(
     Extension(identity): Extension<Identity>,
     Query(query): Query<HashMap<String, String>>,
-) -> Result<ApiOK<RespList>> {
+) -> ApiResult<RespList> {
     if !identity.is_role(Role::Super) {
-        return Err(ApiErr::ErrPerm(None));
+        return Err(Code::ErrPerm(None));
     }
     service::account::list(query).await
 }

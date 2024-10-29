@@ -2,6 +2,7 @@ use axum::{
     routing::{get, post},
     Router,
 };
+use tower_http::cors::CorsLayer;
 
 use crate::{
     app::{
@@ -29,7 +30,7 @@ pub fn init() -> Router {
         .route("/", get(|| async { "☺ welcome to Rust app" }))
         .nest("/v1", open.merge(auth))
         .layer(axum::middleware::from_fn(middleware::log::handle))
-        .layer(axum::middleware::from_fn(middleware::identity::handle))
-        .layer(axum::middleware::from_fn(middleware::cors::handle))
-        .layer(axum::middleware::from_fn(middleware::trace_id::handle))
+        .layer(CorsLayer::very_permissive().expose_headers(vec![middleware::trace::TRACE_ID]))
+        .layer(axum::middleware::from_fn(middleware::catch_panic::handle))
+        .layer(axum::middleware::from_fn(middleware::trace::handle))
 }

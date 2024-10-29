@@ -1,20 +1,22 @@
 use axum::{extract::Request, http::HeaderValue, middleware::Next, response::Response};
-use http::HeaderName;
+use http::{header::AUTHORIZATION, HeaderName};
 use nanoid::nanoid;
+use tracing::Instrument;
 
-use crate::shared::crypto::hash;
+use crate::shared::{crypto::hash, util::identity::Identity};
 
-pub const TRACE_KEY: &str = "x-trace-id";
+pub const TRACE_ID: HeaderName = HeaderName::from_static("x-trace-id");
 
 pub async fn handle(mut request: Request, next: Next) -> Response {
     let hostname = hostname::get()
         .unwrap_or_default()
         .into_string()
         .unwrap_or_default();
+    // traceId
     let trace_id = match request
         .headers()
-        .get(TRACE_KEY)
-        .and_then(|value| value.to_str().ok())
+        .get(TRACE_ID)
+        .and_then(|v| v.to_str().ok())
     {
         Some(v) => {
             if v.len() != 0 {
@@ -25,14 +27,24 @@ pub async fn handle(mut request: Request, next: Next) -> Response {
         }
         None => gen_trace_id(&mut request, &hostname),
     };
+    // Identity
+    let token = request
+        .headers()
+        .get(AUTHORIZATION)
+        .and_then(|v| v.to_str().ok());
+    let id = match token {
+        None => Identity::empty(),
+        Some(v) => Identity::from_auth_token(v.to_string()),
+    };
+    let id_str = id.to_string();
+    // 设置 Identity
+    request.extensions_mut().insert(id);
     // 设置 trace span
-    let span = tracing::info_span!("trace", hostname, trace_id);
-    // 进入span，生命周期内所有事件都关联到该span
-    let _enter = span.enter();
+    let span = tracing::info_span!("trace", hostname, trace_id, identity = id_str);
+    let mut response = next.run(request).instrument(span).await;
     // 设置返回header
-    let mut response = next.run(request).await;
     response.headers_mut().insert(
-        HeaderName::from_static(TRACE_KEY),
+        TRACE_ID,
         HeaderValue::from_str(&trace_id).unwrap_or(HeaderValue::from_static("")),
     );
     response
@@ -41,7 +53,7 @@ pub async fn handle(mut request: Request, next: Next) -> Response {
 fn gen_trace_id(req: &mut Request, hostname: &str) -> String {
     let id = hash::md5(format!("{}/{}", hostname, nanoid!(32)).as_bytes());
     req.headers_mut().insert(
-        HeaderName::from_static(TRACE_KEY),
+        TRACE_ID,
         HeaderValue::from_str(&id).unwrap_or(HeaderValue::from_static("")),
     );
     id

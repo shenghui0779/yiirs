@@ -1,3 +1,3 @@
 pub fn exec(name: String) {
-    println!("hello {}!", name)
+    println!("hello {}!", name);
 }

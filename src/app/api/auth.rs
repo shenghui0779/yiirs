@@ -3,11 +3,7 @@ use axum_extra::extract::WithRejection;
 use validator::Validate;
 
 use crate::shared::{
-    result::{
-        rejection::IRejection,
-        response::{ApiErr, ApiOK},
-        Result,
-    },
+    result::{code::Code, rejection::IRejection, reply, ApiResult},
     util::identity::Identity,
 };
 
@@ -18,16 +14,16 @@ use crate::app::service::{
 
 pub async fn login(
     WithRejection(Json(req), _): IRejection<Json<ReqLogin>>,
-) -> Result<ApiOK<RespLogin>> {
+) -> ApiResult<RespLogin> {
     if let Err(e) = req.validate() {
-        return Err(ApiErr::ErrParams(Some(e.to_string())));
+        return Err(Code::ErrParams(Some(e.to_string())));
     }
     service::auth::login(req).await
 }
 
-pub async fn logout(Extension(identity): Extension<Identity>) -> Result<ApiOK<()>> {
+pub async fn logout(Extension(identity): Extension<Identity>) -> ApiResult<()> {
     if identity.id() == 0 {
-        return Ok(ApiOK(None));
+        return Ok(reply::OK(None));
     }
     service::auth::logout(identity).await
 }

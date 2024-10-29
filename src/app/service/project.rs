@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::shared::core::db;
-use crate::shared::result;
-use crate::shared::result::response::{ApiErr, ApiOK};
+use crate::shared::result::code::Code;
+use crate::shared::result::{reply, ApiResult};
 use crate::shared::util::identity::{Identity, Role};
 use crate::shared::util::{helper, xtime};
 
@@ -24,7 +24,7 @@ pub struct ReqCreate {
     pub remark: Option<String>,
 }
 
-pub async fn create(identity: Identity, req: ReqCreate) -> result::Result<ApiOK<()>> {
+pub async fn create(identity: Identity, req: ReqCreate) -> ApiResult<()> {
     // 校验编号唯一性
     let count = Project::find()
         .filter(project::Column::Code.eq(req.code.clone()))
@@ -32,10 +32,10 @@ pub async fn create(identity: Identity, req: ReqCreate) -> result::Result<ApiOK<
         .await
         .map_err(|e| {
             tracing::error!(error = ?e, "error find project");
-            ApiErr::ErrSystem(None)
+            Code::ErrSystem(None)
         })?;
     if count > 0 {
-        return Err(ApiErr::ErrPerm(Some("该编号已被使用".to_string())));
+        return Err(Code::ErrPerm(Some("该编号已被使用".to_string())));
     }
 
     let now = xtime::now(None).unix_timestamp();
@@ -50,10 +50,10 @@ pub async fn create(identity: Identity, req: ReqCreate) -> result::Result<ApiOK<
     };
     if let Err(e) = Project::insert(model).exec(db::conn()).await {
         tracing::error!(error = ?e, "error insert project");
-        return Err(ApiErr::ErrSystem(None));
+        return Err(Code::ErrSystem(None));
     }
 
-    Ok(ApiOK(None))
+    Ok(reply::OK(None))
 }
 
 #[derive(Debug, Serialize)]
@@ -71,10 +71,7 @@ pub struct RespList {
     pub list: Vec<RespInfo>,
 }
 
-pub async fn list(
-    identity: Identity,
-    query: HashMap<String, String>,
-) -> result::Result<ApiOK<RespList>> {
+pub async fn list(identity: Identity, query: HashMap<String, String>) -> ApiResult<RespList> {
     let mut builder = Project::find();
     if identity.is_role(Role::Super) {
         if let Some(account_id) = query.get("account_id") {
@@ -109,7 +106,7 @@ pub async fn list(
             .await
             .map_err(|e| {
                 tracing::error!(error = ?e, "error count project");
-                ApiErr::ErrSystem(None)
+                Code::ErrSystem(None)
             })?
             .unwrap_or_default();
     }
@@ -122,7 +119,7 @@ pub async fn list(
         .await
         .map_err(|e| {
             tracing::error!(error = ?e, "error find project");
-            ApiErr::ErrSystem(None)
+            Code::ErrSystem(None)
         })?;
     let mut resp = RespList {
         total,
@@ -140,7 +137,7 @@ pub async fn list(
         resp.list.push(info);
     }
 
-    Ok(ApiOK(Some(resp)))
+    Ok(reply::OK(Some(resp)))
 }
 
 #[derive(Debug, Serialize)]
@@ -159,18 +156,18 @@ pub struct ProjAccount {
     pub name: String,
 }
 
-pub async fn detail(identity: Identity, project_id: u64) -> result::Result<ApiOK<RespDetail>> {
+pub async fn detail(identity: Identity, project_id: u64) -> ApiResult<RespDetail> {
     let (model_proj, model_account) = Project::find_by_id(project_id)
         .find_also_related(Account)
         .one(db::conn())
         .await
         .map_err(|e| {
             tracing::error!(error = ?e, "error find project");
-            ApiErr::ErrSystem(None)
+            Code::ErrSystem(None)
         })?
-        .ok_or(ApiErr::ErrNotFound(Some("项目不存在".to_string())))?;
+        .ok_or(Code::ErrEmpty(Some("项目不存在".to_string())))?;
     if !identity.is_role(Role::Super) && identity.id() != model_proj.account_id {
-        return Err(ApiErr::ErrPerm(None));
+        return Err(Code::ErrPerm(None));
     }
 
     let mut resp = RespDetail {
@@ -189,5 +186,5 @@ pub async fn detail(identity: Identity, project_id: u64) -> result::Result<ApiOK
         })
     }
 
-    Ok(ApiOK(Some(resp)))
+    Ok(reply::OK(Some(resp)))
 }
