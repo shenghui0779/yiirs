@@ -26,7 +26,6 @@ pub async fn create(req: &mut Request) -> ApiResult<()> {
     if !id.is_role(Role::Super) {
         return Err(Code::ErrPerm(None));
     }
-
     service::account::create(params).await
 }
 

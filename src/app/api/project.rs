@@ -23,7 +23,6 @@ pub async fn create(req: &mut Request) -> ApiResult<()> {
 
     let empty = Identity::empty();
     let id = req.extensions().get::<Identity>().unwrap_or(&empty);
-
     service::project::create(id, params).await
 }
 
