@@ -24,14 +24,14 @@ pub struct ReqCreate {
     pub remark: Option<String>,
 }
 
-pub async fn create(identity: Identity, req: ReqCreate) -> ApiResult<()> {
+pub async fn create(id: Identity, req: ReqCreate) -> ApiResult<()> {
     // 校验编号唯一性
     let count = Project::find()
         .filter(project::Column::Code.eq(req.code.clone()))
         .count(db::conn())
         .await
         .map_err(|e| {
-            tracing::error!(error = ?e, "error find project");
+            tracing::error!(err = ?e, "find project");
             Code::ErrSystem(None)
         })?;
     if count > 0 {
@@ -43,13 +43,13 @@ pub async fn create(identity: Identity, req: ReqCreate) -> ApiResult<()> {
         code: Set(req.code),
         name: Set(req.name),
         remark: Set(req.remark.unwrap_or_default()),
-        account_id: Set(identity.id()),
+        account_id: Set(id.id()),
         created_at: Set(now),
         updated_at: Set(now),
         ..Default::default()
     };
     if let Err(e) = Project::insert(model).exec(db::conn()).await {
-        tracing::error!(error = ?e, "error insert project");
+        tracing::error!(err = ?e, "insert project");
         return Err(Code::ErrSystem(None));
     }
 
@@ -71,16 +71,16 @@ pub struct RespList {
     pub list: Vec<RespInfo>,
 }
 
-pub async fn list(identity: Identity, query: HashMap<String, String>) -> ApiResult<RespList> {
+pub async fn list(id: Identity, query: HashMap<String, String>) -> ApiResult<RespList> {
     let mut builder = Project::find();
-    if identity.is_role(Role::Super) {
+    if id.is_role(Role::Super) {
         if let Some(account_id) = query.get("account_id") {
             if let Ok(v) = account_id.parse::<u64>() {
                 builder = builder.filter(project::Column::AccountId.eq(v));
             }
         }
     } else {
-        builder = builder.filter(project::Column::AccountId.eq(identity.id()));
+        builder = builder.filter(project::Column::AccountId.eq(id.id()));
     }
     if let Some(code) = query.get("code") {
         if !code.is_empty() {
@@ -105,7 +105,7 @@ pub async fn list(identity: Identity, query: HashMap<String, String>) -> ApiResu
             .one(db::conn())
             .await
             .map_err(|e| {
-                tracing::error!(error = ?e, "error count project");
+                tracing::error!(err = ?e, "count project");
                 Code::ErrSystem(None)
             })?
             .unwrap_or_default();
@@ -118,7 +118,7 @@ pub async fn list(identity: Identity, query: HashMap<String, String>) -> ApiResu
         .all(db::conn())
         .await
         .map_err(|e| {
-            tracing::error!(error = ?e, "error find project");
+            tracing::error!(err = ?e, "find project");
             Code::ErrSystem(None)
         })?;
     let mut resp = RespList {
@@ -156,17 +156,17 @@ pub struct ProjAccount {
     pub name: String,
 }
 
-pub async fn detail(identity: Identity, project_id: u64) -> ApiResult<RespDetail> {
+pub async fn detail(id: Identity, project_id: u64) -> ApiResult<RespDetail> {
     let (model_proj, model_account) = Project::find_by_id(project_id)
         .find_also_related(Account)
         .one(db::conn())
         .await
         .map_err(|e| {
-            tracing::error!(error = ?e, "error find project");
+            tracing::error!(err = ?e, "find project");
             Code::ErrSystem(None)
         })?
         .ok_or(Code::ErrEmpty(Some("项目不存在".to_string())))?;
-    if !identity.is_role(Role::Super) && identity.id() != model_proj.account_id {
+    if !id.is_role(Role::Super) && id.id() != model_proj.account_id {
         return Err(Code::ErrPerm(None));
     }
 
@@ -182,7 +182,7 @@ pub async fn detail(identity: Identity, project_id: u64) -> ApiResult<RespDetail
     if let Some(v) = model_account {
         resp.account = Some(ProjAccount {
             id: v.id,
-            name: v.realname,
+            name: v.username,
         })
     }
 

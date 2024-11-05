@@ -18,25 +18,25 @@ use crate::app::service::{
 };
 
 pub async fn create(
-    Extension(identity): Extension<Identity>,
+    Extension(id): Extension<Identity>,
     WithRejection(Json(req), _): IRejection<Json<ReqCreate>>,
 ) -> ApiResult<()> {
     if let Err(e) = req.validate() {
         return Err(Code::ErrParams(Some(e.to_string())));
     }
-    service::project::create(identity, req).await
+    service::project::create(id, req).await
 }
 
 pub async fn list(
-    Extension(identity): Extension<Identity>,
+    Extension(id): Extension<Identity>,
     Query(query): Query<HashMap<String, String>>,
 ) -> ApiResult<RespList> {
-    service::project::list(identity, query).await
+    service::project::list(id, query).await
 }
 
 pub async fn detail(
-    Extension(identity): Extension<Identity>,
+    Extension(id): Extension<Identity>,
     Path(project_id): Path<u64>,
 ) -> ApiResult<RespDetail> {
-    service::project::detail(identity, project_id).await
+    service::project::detail(id, project_id).await
 }

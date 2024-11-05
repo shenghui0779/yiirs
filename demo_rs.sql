@@ -34,10 +34,8 @@ DROP TABLE IF EXISTS `account`;
 CREATE TABLE `account` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增ID',
   `username` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '用户名称',
-  `password` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '用户密码',
-  `salt` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '加密盐',
+  `password` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '用户密码',
   `role` tinyint NOT NULL DEFAULT '0' COMMENT '角色：1 - 普通；2 - 管理员',
-  `realname` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '真实姓名',
   `login_at` bigint NOT NULL DEFAULT '0' COMMENT '最近一次登录时间',
   `login_token` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '当前登录的token',
   `created_at` bigint NOT NULL DEFAULT '0' COMMENT '创建时间',
@@ -65,8 +63,8 @@ CREATE TABLE `project` (
 
 LOCK TABLES `account` WRITE;
 TRUNCATE `account`;
-INSERT INTO `account` (`id`, `username`, `password`, `salt`, `role`, `realname`, `login_at`, `login_token`, `created_at`, `updated_at`) VALUES
-	(1,'admin','e03dcdf34a257041b36bd77132130fdc','LCV8xdTcqmkhA$ze',2,'Administrator',1675941517,'cc3e49577201323b0010815f2485acd9',1675941476,1675941517);
+INSERT INTO `account` (`id`, `username`, `password`, `role`, `login_at`, `login_token`, `created_at`, `updated_at`) VALUES
+	(1,'admin','$2b$12$6IazZqBcVoaWonrRYgXdGO.vqVI9MgkNzxTBZwCTkjlJAf8labC7O',2,0,'',1675941476,1675941517);
 UNLOCK TABLES;
 
 
