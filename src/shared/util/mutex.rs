@@ -110,7 +110,7 @@ impl Drop for RedisLock {
         let mut conn = match cache::redis_pool().get() {
             Ok(v) => v,
             Err(e) => {
-                tracing::error!(error = ?e, "[mutex] redis get connection error");
+                tracing::error!(err = ?e, "[mutex] redis get connection error");
                 return;
             }
         };
@@ -118,7 +118,7 @@ impl Drop for RedisLock {
         let script = redis::Script::new(SCRIPT);
         let ret: redis::RedisResult<()> = script.key(&self.key).arg(&self.token).invoke(&mut conn);
         if let Err(e) = ret {
-            tracing::error!(error = ?e, "[mutex] redis del key({}) error", self.key);
+            tracing::error!(err = ?e, "[mutex] redis del key({}) error", self.key);
         }
     }
 }

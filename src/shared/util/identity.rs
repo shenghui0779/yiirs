@@ -7,6 +7,10 @@ use std::fmt::Display;
 use crate::config;
 use crate::shared::crypto::aes::CBC;
 
+use super::xtime;
+
+pub const EXPIRE_SECONDS: i64 = 86400;
+
 pub enum Role {
     Super,
     Normal,
@@ -17,6 +21,7 @@ pub struct Identity {
     i: u64,
     r: i8,
     t: String,
+    x: i64,
 }
 
 impl Identity {
@@ -25,6 +30,7 @@ impl Identity {
             i: id,
             r: role,
             t: token,
+            x: xtime::now(None).unix_timestamp() + EXPIRE_SECONDS,
         }
     }
 
@@ -33,6 +39,7 @@ impl Identity {
             i: 0,
             r: 0,
             t: String::from(""),
+            x: 0,
         }
     }
 
@@ -42,14 +49,14 @@ impl Identity {
         }
         let cipher = match BASE64_STANDARD.decode(token) {
             Err(e) => {
-                tracing::error!(error = ?e, "error invalid auth_token");
+                tracing::error!(err = ?e, "invalid auth_token");
                 return Identity::empty();
             }
             Ok(v) => v,
         };
         let secret = match config::global().get_string("app.secret") {
             Err(e) => {
-                tracing::error!(error = ?e, "error missing config(app.secret)");
+                tracing::error!(err = ?e, "missing config(app.secret)");
                 return Identity::empty();
             }
             Ok(v) => v,
@@ -57,7 +64,7 @@ impl Identity {
         let key = secret.as_bytes();
         let plain = match CBC(key, &key[..16]).decrypt(&cipher) {
             Err(e) => {
-                tracing::error!(error = ?e, "error invalid auth_token");
+                tracing::error!(err = ?e, "invalid auth_token");
                 return Identity::empty();
             }
             Ok(v) => v,
@@ -65,7 +72,7 @@ impl Identity {
 
         match serde_json::from_slice::<Identity>(&plain) {
             Err(e) => {
-                tracing::error!(error = ?e, "error invalid auth_token");
+                tracing::error!(err = ?e, "invalid auth_token");
                 Identity::empty()
             }
             Ok(identity) => identity,
@@ -88,6 +95,10 @@ impl Identity {
 
     pub fn match_token(&self, token: String) -> bool {
         self.t == token
+    }
+
+    pub fn is_expired(&self) -> bool {
+        self.x > xtime::now(None).unix_timestamp()
     }
 
     pub fn is_role(&self, role: Role) -> bool {
@@ -114,6 +125,7 @@ impl Default for Identity {
             i: 0,
             r: 0,
             t: String::from(""),
+            x: 0,
         }
     }
 }

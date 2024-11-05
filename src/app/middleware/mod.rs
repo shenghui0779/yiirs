@@ -15,7 +15,10 @@ pub async fn auth_check(identity: &Identity) -> Result<()> {
     match ret {
         None => return Err(anyhow!("授权账号不存在")),
         Some(v) => {
-            if v.login_token.is_empty() || !identity.match_token(v.login_token) {
+            if v.login_token.is_empty()
+                || !identity.match_token(v.login_token)
+                || identity.is_expired()
+            {
                 return Err(anyhow!("授权已失效"));
             }
         }

@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::shared::core::db;
-use crate::shared::crypto::hash;
 use crate::shared::result::code::Code;
 use crate::shared::result::{reply, ApiResult};
 use crate::shared::util::{helper, xtime};
@@ -19,8 +18,6 @@ pub struct ReqCreate {
     pub username: String,
     #[validate(length(min = 1, message = "密码必填"))]
     pub password: String,
-    #[validate(length(min = 1, message = "实名必填"))]
-    pub realname: String,
 }
 
 pub async fn create(req: ReqCreate) -> ApiResult<()> {
@@ -29,29 +26,29 @@ pub async fn create(req: ReqCreate) -> ApiResult<()> {
         .count(db::conn())
         .await
         .map_err(|e| {
-            tracing::error!(error = ?e, "error find account");
+            tracing::error!(err = ?e, "find account");
             Code::ErrSystem(None)
         })?;
     if count > 0 {
         return Err(Code::ErrPerm(Some("该用户名已被使用".to_string())));
     }
 
-    let salt = helper::nonce(16);
-    let pass = format!("{}{}", req.password, salt);
+    let passwd = bcrypt::hash(req.password, bcrypt::DEFAULT_COST).map_err(|e| {
+        tracing::error!(err = ?e, "hash password");
+        Code::ErrSystem(None)
+    })?;
     let now = xtime::now(None).unix_timestamp();
     let model = account::ActiveModel {
         username: Set(req.username),
-        password: Set(hash::md5(pass.as_bytes())),
-        salt: Set(salt),
+        password: Set(passwd),
         role: Set(1),
-        realname: Set(req.realname),
         created_at: Set(now),
         updated_at: Set(now),
         ..Default::default()
     };
 
     if let Err(e) = Account::insert(model).exec(db::conn()).await {
-        tracing::error!(error = ?e, "error insert account");
+        tracing::error!(err = ?e, "insert account");
         return Err(Code::ErrSystem(None));
     }
 
@@ -62,7 +59,6 @@ pub async fn create(req: ReqCreate) -> ApiResult<()> {
 pub struct RespInfo {
     pub id: u64,
     pub username: String,
-    pub realname: String,
     pub login_at: i64,
     pub login_at_str: String,
     pub created_at: i64,
@@ -74,7 +70,7 @@ pub async fn info(account_id: u64) -> ApiResult<RespInfo> {
         .one(db::conn())
         .await
         .map_err(|e| {
-            tracing::error!(error = ?e, "Error Account::find_by_id");
+            tracing::error!(err = ?e, "Account::find_by_id");
             Code::ErrSystem(None)
         })?
         .ok_or(Code::ErrEmpty(Some("账号不存在".to_string())))?;
@@ -82,7 +78,6 @@ pub async fn info(account_id: u64) -> ApiResult<RespInfo> {
     let resp = RespInfo {
         id: model.id,
         username: model.username,
-        realname: model.realname,
         login_at: model.login_at,
         login_at_str: xtime::to_string(xtime::DATE_TIME, model.login_at, None).unwrap_or_default(),
         created_at: model.created_at,
@@ -119,7 +114,7 @@ pub async fn list(query: &MultiMap<String, String>) -> ApiResult<RespList> {
             .one(db::conn())
             .await
             .map_err(|e| {
-                tracing::error!(error = ?e, "error count account");
+                tracing::error!(err = ?e, "count account");
                 Code::ErrSystem(None)
             })?
             .unwrap_or_default();
@@ -132,7 +127,7 @@ pub async fn list(query: &MultiMap<String, String>) -> ApiResult<RespList> {
         .all(db::conn())
         .await
         .map_err(|e| {
-            tracing::error!(error = ?e, "error find account");
+            tracing::error!(err = ?e, "find account");
             Code::ErrSystem(None)
         })?;
     let mut resp = RespList {
@@ -143,7 +138,6 @@ pub async fn list(query: &MultiMap<String, String>) -> ApiResult<RespList> {
         let info = RespInfo {
             id: model.id,
             username: model.username,
-            realname: model.realname,
             login_at: model.login_at,
             login_at_str: xtime::to_string(xtime::DATE_TIME, model.login_at, None)
                 .unwrap_or_default(),

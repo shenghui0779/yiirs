@@ -32,14 +32,17 @@ pub async fn login(req: ReqLogin) -> ApiResult<RespLogin> {
         .one(db::conn())
         .await
         .map_err(|e| {
-            tracing::error!(error = ?e, "error find account");
+            tracing::error!(err = ?e, "find account");
             Code::ErrSystem(None)
         })?
-        .ok_or(Code::ErrAuth(Some("账号不存在".to_string())))?;
+        .ok_or(Code::ErrAuth(Some("账号或密码错误".to_string())))?;
 
-    let pass = format!("{}{}", req.password, model.salt);
-    if hash::md5(pass.as_bytes()) != model.password {
-        return Err(Code::ErrAuth(Some("密码错误".to_string())));
+    let valid = bcrypt::verify(req.password, &model.password).map_err(|e| {
+        tracing::error!(err = ?e, "verify password");
+        Code::ErrSystem(None)
+    })?;
+    if !valid {
+        return Err(Code::ErrAuth(Some("账号或密码错误".to_string())));
     }
 
     let now = xtime::now(None).unix_timestamp();
@@ -48,7 +51,7 @@ pub async fn login(req: ReqLogin) -> ApiResult<RespLogin> {
     let auth_token = Identity::new(model.id, model.role, login_token.clone())
         .to_auth_token()
         .map_err(|e| {
-            tracing::error!(error = ?e, "error identity encrypt");
+            tracing::error!(err = ?e, "identity encrypt");
             Code::ErrSystem(None)
         })?;
     let update_model = account::ActiveModel {
@@ -63,12 +66,12 @@ pub async fn login(req: ReqLogin) -> ApiResult<RespLogin> {
         .exec(db::conn())
         .await;
     if let Err(e) = ret_update {
-        tracing::error!(error = ?e, "error update account");
+        tracing::error!(err = ?e, "update account");
         return Err(Code::ErrSystem(None));
     }
 
     let resp = RespLogin {
-        name: model.realname,
+        name: model.username,
         role: model.role,
         auth_token,
     };
@@ -88,7 +91,7 @@ pub async fn logout(identity: &Identity) -> ApiResult<()> {
         .await;
 
     if let Err(e) = ret {
-        tracing::error!(error = ?e, "error update account");
+        tracing::error!(err = ?e, "update account");
         return Err(Code::ErrSystem(None));
     }
 

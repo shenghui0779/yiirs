@@ -14,7 +14,7 @@ use crate::app::service::{
 #[handler]
 pub async fn login(req: &mut Request) -> ApiResult<RespLogin> {
     let params = req.parse_json::<ReqLogin>().await.map_err(|e| {
-        tracing::error!(error = ?e, "Error req.parse_json");
+        tracing::error!(err = ?e, "req.parse_json");
         Code::ErrParams(Some("参数解析出错".to_string()))
     })?;
     if let Err(e) = params.validate() {

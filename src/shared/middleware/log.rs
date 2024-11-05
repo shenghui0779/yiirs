@@ -85,7 +85,7 @@ async fn drain_body(req: &mut Request) -> (Option<String>, Option<Code>) {
     let bytes = match body.collect().await {
         Ok(v) => v.to_bytes(),
         Err(e) => {
-            tracing::error!(error = ?e, "Error body.collect");
+            tracing::error!(err = ?e, "body.collect");
             return (None, Some(Code::ErrSystem(None)));
         }
     };

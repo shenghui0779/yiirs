@@ -30,7 +30,7 @@ pub async fn create(id: &Identity, req: ReqCreate) -> ApiResult<()> {
         .count(db::conn())
         .await
         .map_err(|e| {
-            tracing::error!(error = ?e, "error find project");
+            tracing::error!(err = ?e, "find project");
             Code::ErrSystem(None)
         })?;
     if count > 0 {
@@ -48,7 +48,7 @@ pub async fn create(id: &Identity, req: ReqCreate) -> ApiResult<()> {
         ..Default::default()
     };
     if let Err(e) = Project::insert(model).exec(db::conn()).await {
-        tracing::error!(error = ?e, "error insert project");
+        tracing::error!(err = ?e, "insert project");
         return Err(Code::ErrSystem(None));
     }
 
@@ -104,7 +104,7 @@ pub async fn list(id: &Identity, query: &MultiMap<String, String>) -> ApiResult<
             .one(db::conn())
             .await
             .map_err(|e| {
-                tracing::error!(error = ?e, "error count project");
+                tracing::error!(err = ?e, "count project");
                 Code::ErrSystem(None)
             })?
             .unwrap_or_default();
@@ -117,7 +117,7 @@ pub async fn list(id: &Identity, query: &MultiMap<String, String>) -> ApiResult<
         .all(db::conn())
         .await
         .map_err(|e| {
-            tracing::error!(error = ?e, "error find project");
+            tracing::error!(err = ?e, "find project");
             Code::ErrSystem(None)
         })?;
     let mut resp = RespList {
@@ -161,7 +161,7 @@ pub async fn detail(id: &Identity, project_id: u64) -> ApiResult<RespDetail> {
         .one(db::conn())
         .await
         .map_err(|e| {
-            tracing::error!(error = ?e, "error find project");
+            tracing::error!(err = ?e, "find project");
             Code::ErrSystem(None)
         })?
         .ok_or(Code::ErrEmpty(Some("项目不存在".to_string())))?;
@@ -181,7 +181,7 @@ pub async fn detail(id: &Identity, project_id: u64) -> ApiResult<RespDetail> {
     if let Some(v) = model_account {
         resp.account = Some(ProjAccount {
             id: v.id,
-            name: v.realname,
+            name: v.username,
         })
     }
 
