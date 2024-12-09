@@ -20,7 +20,7 @@ where
 
 impl<T> OK<T>
 where
-    T: Serialize + std::marker::Send,
+    T: Serialize + Send,
 {
     pub fn to_reply(self) -> Reply<T> {
         Reply {
@@ -35,7 +35,7 @@ where
 #[async_trait]
 impl<T> Writer for OK<T>
 where
-    T: Serialize + std::marker::Send,
+    T: Serialize + Send,
 {
     async fn write(mut self, _req: &mut Request, _depot: &mut Depot, resp: &mut Response) {
         resp.render(Json(self.to_reply()));

@@ -132,7 +132,7 @@ pub async fn list(query: &MultiMap<String, String>) -> ApiResult<RespList> {
         })?;
     let mut resp = RespList {
         total,
-        list: (Vec::with_capacity(models.len())),
+        list: Vec::with_capacity(models.len()),
     };
     for model in models {
         let info = RespInfo {

@@ -64,10 +64,7 @@ fn header_to_string(h: &HeaderMap) -> String {
         }
         map.insert(k.to_string(), vals);
     }
-    match serde_json::to_string(&map) {
-        Ok(v) => v,
-        Err(_) => String::from("<none>"),
-    }
+    serde_json::to_string(&map).unwrap_or_else(|_| String::from("<none>"))
 }
 
 async fn drain_body(req: &mut Request) -> (Option<String>, Option<Code>) {
