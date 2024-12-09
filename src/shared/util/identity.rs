@@ -70,13 +70,10 @@ impl Identity {
             Ok(v) => v,
         };
 
-        match serde_json::from_slice::<Identity>(&plain) {
-            Err(e) => {
-                tracing::error!(err = ?e, "invalid auth_token");
-                Identity::empty()
-            }
-            Ok(identity) => identity,
-        }
+        serde_json::from_slice::<Identity>(&plain).unwrap_or_else(|e| {
+            tracing::error!(err = ?e, "invalid auth_token");
+            Identity::empty()
+        })
     }
 
     pub fn to_auth_token(&self) -> Result<String> {
