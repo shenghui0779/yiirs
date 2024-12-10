@@ -58,7 +58,7 @@ impl<'a> RedisLock<'a> {
             if ok {
                 return Ok(true);
             }
-            if i < attempts {
+            if i < attempts - 1 {
                 sleep(interval).await;
             }
         }
