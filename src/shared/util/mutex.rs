@@ -15,16 +15,26 @@ end
 ";
 
 // 基于Redis的分布式锁
-pub struct RedisLock {
+pub struct RedisLock<'a> {
+    pool: &'a cache::RedisPool,
+    async_pool: &'a cache::RedisAsyncPool,
     key: String,
     token: String,
     expire: u64,
     unlock: bool,
 }
 
-impl RedisLock {
-    pub fn new(key: String, ttl: time::Duration, auto_unlock: bool) -> RedisLock {
+impl<'a> RedisLock<'a> {
+    pub fn new(
+        client: (&'a cache::RedisPool, &'a cache::RedisAsyncPool),
+        key: String,
+        ttl: time::Duration,
+        auto_unlock: bool,
+    ) -> RedisLock<'a> {
+        let (pool, async_pool) = client;
         RedisLock {
+            pool,
+            async_pool,
             key,
             token: String::from(""),
             expire: ttl.as_millis() as u64,
@@ -60,7 +70,7 @@ impl RedisLock {
         if self.token.is_empty() {
             return Ok(());
         }
-        let conn = cache::redis_async_pool().get().await?;
+        let conn = self.async_pool.get().await?;
         let script = redis::Script::new(SCRIPT);
         script
             .key(&self.key)
@@ -71,7 +81,7 @@ impl RedisLock {
     }
 
     async fn _acquire(&mut self) -> anyhow::Result<bool> {
-        let mut conn = cache::redis_async_pool().get().await?;
+        let mut conn = self.async_pool.get().await?;
         let opts = redis::SetOptions::default()
             .conditional_set(NX)
             .with_expiration(PX(self.expire));
@@ -101,13 +111,13 @@ impl RedisLock {
 }
 
 // 释放锁(自动)
-impl Drop for RedisLock {
+impl<'a> Drop for RedisLock<'a> {
     fn drop(&mut self) {
         if !self.unlock || self.token.is_empty() {
             return;
         }
 
-        let mut conn = match cache::redis_pool().get() {
+        let mut conn = match self.pool.get() {
             Ok(v) => v,
             Err(e) => {
                 tracing::error!(err = ?e, "[mutex] redis get connection error");

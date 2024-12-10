@@ -23,9 +23,9 @@ impl Handler for CatchPanic {
         resp: &mut Response,
         ctrl: &mut FlowCtrl,
     ) {
-        if let Err(_) = AssertUnwindSafe(ctrl.call_next(req, depot, resp))
+        if AssertUnwindSafe(ctrl.call_next(req, depot, resp))
             .catch_unwind()
-            .await
+            .await.is_err()
         {
             resp.render(Json(Code::ErrSystem(None).to_reply()));
         }
