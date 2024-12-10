@@ -16,7 +16,7 @@ pub enum Role {
     Normal,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Identity {
     i: u64,
     r: i8,
@@ -104,31 +104,16 @@ impl Identity {
             Role::Super => self.r == 2,
         }
     }
-
-    pub fn to_string(&self) -> String {
-        if self.i == 0 {
-            return "<none>".to_string();
-        }
-        if self.r == 0 {
-            return format!("id:{}|token:{}", self.i, self.t);
-        }
-        format!("id:{}|role:{}|token:{}", self.i, self.r, self.t)
-    }
-}
-
-impl Default for Identity {
-    fn default() -> Self {
-        Identity {
-            i: 0,
-            r: 0,
-            t: String::from(""),
-            x: 0,
-        }
-    }
 }
 
 impl Display for Identity {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_string())
+        if self.i == 0 {
+            return write!(f, "<none>");
+        }
+        if self.r == 0 {
+            return write!(f, "id:{}|token:{}", self.i, self.t);
+        }
+        write!(f, "id:{}|role:{}|token:{}", self.i, self.r, self.t)
     }
 }

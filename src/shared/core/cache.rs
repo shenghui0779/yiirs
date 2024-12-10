@@ -2,10 +2,10 @@ use config::Config;
 use std::io;
 use std::{sync::OnceLock, time::Duration};
 
-type RedisPool = r2d2::Pool<redis::Client>;
-type RedisAsyncPool = mobc::Pool<RedisAsyncConnManager>;
-type RedisClusterPool = r2d2::Pool<redis::cluster::ClusterClient>;
-type RedisClusterAsyncPool = mobc::Pool<RedisClusterAsyncConnManager>;
+pub type RedisPool = r2d2::Pool<redis::Client>;
+pub type RedisAsyncPool = mobc::Pool<RedisAsyncConnManager>;
+pub type RedisClusterPool = r2d2::Pool<redis::cluster::ClusterClient>;
+pub type RedisClusterAsyncPool = mobc::Pool<RedisClusterAsyncConnManager>;
 
 static REDIS_POOL: OnceLock<RedisPool> = OnceLock::new();
 static REDIS_ASYNC_POOL: OnceLock<RedisAsyncPool> = OnceLock::new();
