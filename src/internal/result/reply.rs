@@ -8,7 +8,6 @@ where
     T: Serialize,
 {
     pub code: i32,
-    pub err: bool,
     pub msg: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<T>,
@@ -25,7 +24,6 @@ where
     pub fn to_reply(self) -> Reply<T> {
         Reply {
             code: 0,
-            err: false,
             msg: String::from("OK"),
             data: self.0,
         }

@@ -1,6 +1,6 @@
 use salvo::{cors::Cors, handler, Router};
 
-use crate::shared::{self};
+use crate::internal;
 
 use super::middleware;
 
@@ -17,15 +17,15 @@ pub fn init() -> Router {
         .push(route::project());
     // cors
     let cors = Cors::very_permissive()
-        .expose_headers(vec![shared::middleware::trace::TRACE_ID])
+        .expose_headers(vec![internal::middleware::trace::TRACE_ID])
         .into_handler();
     // 路由组册
     Router::new()
         .get(root)
         .hoop(cors)
-        .hoop(shared::middleware::trace::Trace::new())
-        .hoop(shared::middleware::catch_panic::CatchPanic::new())
-        .hoop(shared::middleware::log::Log::new())
+        .hoop(internal::middleware::trace::Trace::new())
+        .hoop(internal::middleware::catch_panic::CatchPanic::new())
+        .hoop(internal::middleware::log::Log::new())
         .path("v1")
         .push(open)
         .push(auth)

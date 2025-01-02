@@ -2,11 +2,11 @@ use std::panic;
 
 use app::cmd;
 use clap::Parser;
-use shared::core::{cache, config, db, logger};
+use internal::core::{cache, config, db, logger};
 use tracing_appender::non_blocking::WorkerGuard;
 
 pub mod app;
-pub mod shared;
+pub mod internal;
 
 #[tokio::main]
 async fn main() {
@@ -32,9 +32,9 @@ async fn init(cfg_file: &str) -> WorkerGuard {
     // 初始化日志
     let _guard = logger::init(Some(config::global()));
     // 初始化数据库
-    db::init(config::global()).await;
+    // db::init(config::global()).await;
     // 初始化Redis
-    cache::init_redis(config::global());
+    // cache::init_redis(config::global());
 
     _guard
 }

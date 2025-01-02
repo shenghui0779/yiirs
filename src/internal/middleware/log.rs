@@ -7,7 +7,7 @@ use salvo::{
     async_trait, http::ReqBody, writing::Json, Depot, FlowCtrl, Handler, Request, Response,
 };
 
-use crate::shared::{result::code::Code, util::xtime};
+use crate::internal::{result::code::Code, util::xtime};
 
 pub struct Log;
 

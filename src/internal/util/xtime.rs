@@ -73,7 +73,7 @@ pub fn to_timestamp(
 
 #[cfg(test)]
 mod tests {
-    use crate::shared::util::xtime;
+    use crate::internal::util::xtime;
 
     #[test]
     fn from_str() {

@@ -3,7 +3,7 @@ use std::panic::AssertUnwindSafe;
 use futures::FutureExt;
 use salvo::{async_trait, writing::Json, Depot, FlowCtrl, Handler, Request, Response};
 
-use crate::shared::result::code::Code;
+use crate::internal::result::code::Code;
 
 pub struct CatchPanic;
 

@@ -4,12 +4,12 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use crate::app::model::{account, prelude::Account};
-use crate::shared::core::db;
-use crate::shared::crypto::hash;
-use crate::shared::result::code::Code;
-use crate::shared::result::{reply, ApiResult};
-use crate::shared::util::identity::Identity;
-use crate::shared::util::{helper, xtime};
+use crate::internal::core::db;
+use crate::internal::crypto::hash;
+use crate::internal::result::code::Code;
+use crate::internal::result::{reply, ApiResult};
+use crate::internal::util::identity::Identity;
+use crate::internal::util::{helper, xtime};
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
 pub struct ReqLogin {
