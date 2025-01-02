@@ -32,9 +32,9 @@ async fn init(cfg_file: &str) -> WorkerGuard {
     // 初始化日志
     let _guard = logger::init(Some(config::global()));
     // 初始化数据库
-    // db::init(config::global()).await;
+    db::init(config::global()).await;
     // 初始化Redis
-    // cache::init_redis(config::global());
+    cache::init_redis(config::global());
 
     _guard
 }
