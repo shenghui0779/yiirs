@@ -3,7 +3,7 @@ use http::{header::AUTHORIZATION, HeaderName};
 use nanoid::nanoid;
 use tracing::Instrument;
 
-use crate::shared::{crypto::hash, util::identity::Identity};
+use crate::internal::{crypto::hash, util::identity::Identity};
 
 pub const TRACE_ID: HeaderName = HeaderName::from_static("x-trace-id");
 

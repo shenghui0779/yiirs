@@ -6,11 +6,11 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use crate::shared::core::db;
-use crate::shared::result::code::Code;
-use crate::shared::result::{reply, ApiResult};
-use crate::shared::util::identity::{Identity, Role};
-use crate::shared::util::{helper, xtime};
+use crate::internal::core::db;
+use crate::internal::result::code::Code;
+use crate::internal::result::{reply, ApiResult};
+use crate::internal::util::identity::{Identity, Role};
+use crate::internal::util::{helper, xtime};
 
 use crate::app::model::prelude::{Account, Project};
 use crate::app::model::project;

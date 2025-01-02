@@ -147,7 +147,7 @@ fn pkcs7_unpadding(data: &[u8]) -> Vec<u8> {
 mod tests {
     use base64::{prelude::BASE64_STANDARD, Engine};
 
-    use crate::shared::crypto::aes::{CBC, ECB, GCM};
+    use crate::internal::crypto::aes::{CBC, ECB, GCM};
 
     #[test]
     fn aes_cbc() {

@@ -30,7 +30,6 @@ impl Code {
         };
         Reply {
             code,
-            err: true,
             msg,
             data: None,
         }

@@ -5,7 +5,7 @@ use std::fmt;
 use std::fmt::Display;
 
 use crate::config;
-use crate::shared::crypto::aes::CBC;
+use crate::internal::crypto::aes::CBC;
 
 use super::xtime;
 

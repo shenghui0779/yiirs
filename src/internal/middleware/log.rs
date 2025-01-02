@@ -10,7 +10,7 @@ use axum::{
 use http_body_util::BodyExt;
 use hyper::HeaderMap;
 
-use crate::shared::{result::code::Code, util::xtime};
+use crate::internal::{result::code::Code, util::xtime};
 
 pub async fn handle(request: Request, next: Next) -> Response {
     let enter_time = xtime::now(None);

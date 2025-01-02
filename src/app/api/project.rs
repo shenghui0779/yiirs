@@ -7,7 +7,7 @@ use axum::{
 use axum_extra::extract::WithRejection;
 use validator::Validate;
 
-use crate::shared::{
+use crate::internal::{
     result::{code::Code, rejection::IRejection, ApiResult},
     util::identity::Identity,
 };

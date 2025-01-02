@@ -6,10 +6,10 @@ use tower_http::cors::CorsLayer;
 
 use crate::{
     app::{
-        self,
         api::{account, auth, project},
+        middleware,
     },
-    shared::middleware,
+    internal,
 };
 
 pub fn init() -> Router {
@@ -23,14 +23,21 @@ pub fn init() -> Router {
         .route("/accounts/:account_id", get(account::info))
         .route("/projects", get(project::list).post(project::create))
         .route("/projects/:project_id", get(project::detail))
-        .layer(axum::middleware::from_fn(app::middleware::auth::handle));
+        .layer(axum::middleware::from_fn(middleware::auth::handle));
 
     // 路由组册
     Router::new()
         .route("/", get(|| async { "☺ welcome to Rust app" }))
         .nest("/v1", open.merge(auth))
-        .layer(axum::middleware::from_fn(middleware::log::handle))
-        .layer(CorsLayer::very_permissive().expose_headers(vec![middleware::trace::TRACE_ID]))
-        .layer(axum::middleware::from_fn(middleware::catch_panic::handle))
-        .layer(axum::middleware::from_fn(middleware::trace::handle))
+        .layer(axum::middleware::from_fn(internal::middleware::log::handle))
+        .layer(
+            CorsLayer::very_permissive()
+                .expose_headers(vec![internal::middleware::trace::TRACE_ID]),
+        )
+        .layer(axum::middleware::from_fn(
+            internal::middleware::catch_panic::handle,
+        ))
+        .layer(axum::middleware::from_fn(
+            internal::middleware::trace::handle,
+        ))
 }

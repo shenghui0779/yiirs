@@ -5,7 +5,7 @@ use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::fmt::format::Writer;
 use tracing_subscriber::{self, fmt::time::FormatTime};
 
-use crate::shared::util::xtime;
+use crate::internal::util::xtime;
 
 // 格式化日志的输出时间格式
 struct LocalTimer;

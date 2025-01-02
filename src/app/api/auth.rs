@@ -2,7 +2,7 @@ use axum::{Extension, Json};
 use axum_extra::extract::WithRejection;
 use validator::Validate;
 
-use crate::shared::{
+use crate::internal::{
     result::{code::Code, rejection::IRejection, reply, ApiResult},
     util::identity::Identity,
 };

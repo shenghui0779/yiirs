@@ -2,11 +2,11 @@ use std::panic;
 
 use app::cmd;
 use clap::Parser;
-use shared::core::{cache, config, db, logger};
+use internal::core::{cache, config, db, logger};
 use tracing_appender::non_blocking::WorkerGuard;
 
 pub mod app;
-pub mod shared;
+pub mod internal;
 
 #[tokio::main]
 async fn main() {

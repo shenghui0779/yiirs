@@ -1,4 +1,4 @@
-use crate::shared::core::config;
+use crate::internal::core::config;
 
 pub mod api;
 pub mod cmd;

@@ -1,6 +1,6 @@
 use crate::app::model::prelude::Account;
-use crate::shared::core::db;
-use crate::shared::util::identity::Identity;
+use crate::internal::core::db;
+use crate::internal::util::identity::Identity;
 use anyhow::anyhow;
 use anyhow::Result;
 use sea_orm::EntityTrait;

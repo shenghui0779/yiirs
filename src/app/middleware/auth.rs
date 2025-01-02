@@ -4,7 +4,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use crate::shared::{result::code::Code, util::identity::Identity};
+use crate::internal::{result::code::Code, util::identity::Identity};
 
 use super::auth_check;
 
