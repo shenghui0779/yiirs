@@ -20,9 +20,9 @@ pub fn init() -> Router {
     let auth = Router::new()
         .route("/logout", get(auth::logout))
         .route("/accounts", get(account::list).post(account::create))
-        .route("/accounts/:account_id", get(account::info))
+        .route("/accounts/{account_id}", get(account::info))
         .route("/projects", get(project::list).post(project::create))
-        .route("/projects/:project_id", get(project::detail))
+        .route("/projects/{project_id}", get(project::detail))
         .layer(axum::middleware::from_fn(middleware::auth::handle));
 
     // 路由组册
