@@ -1,20 +1,22 @@
 use config::Config;
-use std::io;
 use std::{sync::OnceLock, time::Duration};
 
+use super::manager;
+
 pub type RedisPool = r2d2::Pool<redis::Client>;
-pub type RedisAsyncPool = mobc::Pool<RedisAsyncConnManager>;
+pub type RedisAsyncPool = bb8::Pool<manager::RedisAsyncConnManager>;
 pub type RedisClusterPool = r2d2::Pool<redis::cluster::ClusterClient>;
-pub type RedisClusterAsyncPool = mobc::Pool<RedisClusterAsyncConnManager>;
+pub type RedisClusterAsyncPool = bb8::Pool<manager::RedisClusterAsyncConnManager>;
 
 static REDIS_POOL: OnceLock<RedisPool> = OnceLock::new();
 static REDIS_ASYNC_POOL: OnceLock<RedisAsyncPool> = OnceLock::new();
 static REDIS_CLUSTER_POOL: OnceLock<RedisClusterPool> = OnceLock::new();
 static REDIS_CLUSTER_ASYNC_POOL: OnceLock<RedisClusterAsyncPool> = OnceLock::new();
 
-pub fn init_redis(cfg: &Config) {
-    let (pool, async_pool) =
-        new_redis(cfg, "redis").unwrap_or_else(|e| panic!("Redis连接失败: {}", e));
+pub async fn init_redis(cfg: &Config) {
+    let (pool, async_pool) = new_redis(cfg, "redis")
+        .await
+        .unwrap_or_else(|e| panic!("Redis连接失败: {}", e));
     let _ = REDIS_POOL.set(pool);
     let _ = REDIS_ASYNC_POOL.set(async_pool);
 }
@@ -25,8 +27,9 @@ pub fn redis_pool() -> &'static RedisPool {
         .unwrap_or_else(|| panic!("Redis连接池未初始化"))
 }
 
-pub fn init_redis_cluster(cfg: &Config) {
+pub async fn init_redis_cluster(cfg: &Config) {
     let (pool, async_pool) = new_redis_cluster(cfg, "redis-cluster")
+        .await
         .unwrap_or_else(|e| panic!("Redis集群连接失败: {}", e));
     let _ = REDIS_CLUSTER_POOL.set(pool);
     let _ = REDIS_CLUSTER_ASYNC_POOL.set(async_pool);
@@ -50,7 +53,7 @@ pub fn redis_cluster_async_pool() -> &'static RedisClusterAsyncPool {
         .unwrap_or_else(|| panic!("Redis集群异步连接池未初始化"))
 }
 
-pub fn new_redis(cfg: &Config, key: &str) -> anyhow::Result<(RedisPool, RedisAsyncPool)> {
+pub async fn new_redis(cfg: &Config, key: &str) -> anyhow::Result<(RedisPool, RedisAsyncPool)> {
     let client = redis::Client::open(cfg.get_string(&format!("{}.dsn", key))?)?;
     let mut conn = client.get_connection()?;
     let _ = redis::cmd("PING").query::<String>(&mut conn)?;
@@ -73,18 +76,19 @@ pub fn new_redis(cfg: &Config, key: &str) -> anyhow::Result<(RedisPool, RedisAsy
         .build(client.clone())?;
 
     // 异步
-    let async_pool = mobc::Pool::builder()
-        .max_open(max_size as u64)
-        .max_idle(min_idle as u64)
-        .get_timeout(Some(Duration::from_secs(conn_timeout as u64)))
-        .max_idle_lifetime(Some(Duration::from_secs(idle_timeout as u64)))
+    let async_pool = bb8::Pool::builder()
+        .max_size(max_size as u32)
+        .min_idle(Some(min_idle as u32))
+        .connection_timeout(Duration::from_secs(conn_timeout as u64))
+        .idle_timeout(Some(Duration::from_secs(idle_timeout as u64)))
         .max_lifetime(Some(Duration::from_secs(max_lifetime as u64)))
-        .build(RedisAsyncConnManager::new(client));
+        .build(manager::RedisAsyncConnManager::new(client))
+        .await?;
 
     Ok((pool, async_pool))
 }
 
-pub fn new_redis_cluster(
+pub async fn new_redis_cluster(
     cfg: &Config,
     key: &str,
 ) -> anyhow::Result<(RedisClusterPool, RedisClusterAsyncPool)> {
@@ -115,81 +119,14 @@ pub fn new_redis_cluster(
         .build(client.clone())?;
 
     // 异步
-    let async_pool = mobc::Pool::builder()
-        .max_open(max_size as u64)
-        .max_idle(min_idle as u64)
-        .get_timeout(Some(Duration::from_secs(conn_timeout as u64)))
-        .max_idle_lifetime(Some(Duration::from_secs(idle_timeout as u64)))
+    let async_pool = bb8::Pool::builder()
+        .max_size(max_size as u32)
+        .min_idle(Some(min_idle as u32))
+        .connection_timeout(Duration::from_secs(conn_timeout as u64))
+        .idle_timeout(Some(Duration::from_secs(idle_timeout as u64)))
         .max_lifetime(Some(Duration::from_secs(max_lifetime as u64)))
-        .build(RedisClusterAsyncConnManager::new(client));
+        .build(manager::RedisClusterAsyncConnManager::new(client))
+        .await?;
 
     Ok((pool, async_pool))
-}
-
-pub struct RedisAsyncConnManager {
-    client: redis::Client,
-}
-
-impl RedisAsyncConnManager {
-    pub fn new(c: redis::Client) -> Self {
-        Self { client: c }
-    }
-}
-
-#[mobc::async_trait]
-impl mobc::Manager for RedisAsyncConnManager {
-    type Connection = redis::aio::MultiplexedConnection;
-    type Error = redis::RedisError;
-
-    async fn connect(&self) -> Result<Self::Connection, Self::Error> {
-        let c = self.client.get_multiplexed_async_connection().await?;
-        Ok(c)
-    }
-
-    async fn check(&self, mut conn: Self::Connection) -> Result<Self::Connection, Self::Error> {
-        if redis::cmd("PING")
-            .query_async::<()>(&mut conn)
-            .await
-            .is_err()
-        {
-            return Err(redis::RedisError::from(io::Error::from(
-                io::ErrorKind::BrokenPipe,
-            )));
-        }
-        Ok(conn)
-    }
-}
-
-pub struct RedisClusterAsyncConnManager {
-    client: redis::cluster::ClusterClient,
-}
-
-impl RedisClusterAsyncConnManager {
-    pub fn new(c: redis::cluster::ClusterClient) -> Self {
-        Self { client: c }
-    }
-}
-
-#[mobc::async_trait]
-impl mobc::Manager for RedisClusterAsyncConnManager {
-    type Connection = redis::cluster_async::ClusterConnection;
-    type Error = redis::RedisError;
-
-    async fn connect(&self) -> Result<Self::Connection, Self::Error> {
-        let c = self.client.get_async_connection().await?;
-        Ok(c)
-    }
-
-    async fn check(&self, mut conn: Self::Connection) -> Result<Self::Connection, Self::Error> {
-        if redis::cmd("PING")
-            .query_async::<()>(&mut conn)
-            .await
-            .is_err()
-        {
-            return Err(redis::RedisError::from(io::Error::from(
-                io::ErrorKind::BrokenPipe,
-            )));
-        }
-        Ok(conn)
-    }
 }

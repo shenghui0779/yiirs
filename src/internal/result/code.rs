@@ -12,6 +12,7 @@ pub enum Code {
     ErrSystem(Option<String>),
     ErrData(Option<String>),
     ErrService(Option<String>),
+    ErrFrequent(Option<String>),
 }
 
 impl Code {
@@ -25,6 +26,7 @@ impl Code {
             Code::ErrSystem(msg) => (50000, msg.unwrap_or(String::from("内部服务器错误"))),
             Code::ErrData(msg) => (60000, msg.unwrap_or(String::from("数据异常"))),
             Code::ErrService(msg) => (70000, msg.unwrap_or(String::from("服务异常"))),
+            Code::ErrFrequent(msg) => (80000, msg.unwrap_or(String::from("操作频繁，请稍后再试"))),
         };
         Reply {
             code,

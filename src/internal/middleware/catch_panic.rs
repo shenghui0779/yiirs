@@ -14,6 +14,12 @@ impl CatchPanic {
     }
 }
 
+impl Default for CatchPanic {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[async_trait]
 impl Handler for CatchPanic {
     async fn handle(
@@ -25,7 +31,8 @@ impl Handler for CatchPanic {
     ) {
         if AssertUnwindSafe(ctrl.call_next(req, depot, resp))
             .catch_unwind()
-            .await.is_err()
+            .await
+            .is_err()
         {
             resp.render(Json(Code::ErrSystem(None).to_reply()));
         }

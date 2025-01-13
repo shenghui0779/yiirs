@@ -1,11 +1,12 @@
 use anyhow::{anyhow, Result};
 use openssl::symm::{decrypt_aead, encrypt_aead, Cipher, Crypter, Mode};
 
-// AES-CBC pkcs#7
-// CBC(key, iv)
+/// AES-CBC pkcs#7
+///
+/// CBC(key, iv)
 pub struct CBC<'a>(pub &'a [u8], pub &'a [u8]);
 
-impl<'a> CBC<'a> {
+impl CBC<'_> {
     fn cipher(&self) -> Result<Cipher> {
         let cipher = match self.0.len() {
             16 => Cipher::aes_128_cbc(),
@@ -45,11 +46,12 @@ impl<'a> CBC<'a> {
     }
 }
 
-// AES-ECB pkcs#7
-// ECB(key)
+/// AES-ECB pkcs#7
+///
+/// ECB(key)
 pub struct ECB<'a>(pub &'a [u8]);
 
-impl<'a> ECB<'a> {
+impl ECB<'_> {
     fn cipher(&self) -> Result<Cipher> {
         let cipher = match self.0.len() {
             16 => Cipher::aes_128_ecb(),
@@ -93,7 +95,7 @@ impl<'a> ECB<'a> {
 // GCM(key, nonce) -> (cipher, tag)
 pub struct GCM<'a>(pub &'a [u8], pub &'a [u8]);
 
-impl<'a> GCM<'a> {
+impl GCM<'_> {
     fn cipher(&self) -> Result<Cipher> {
         let cipher = match self.0.len() {
             16 => Cipher::aes_128_gcm(),

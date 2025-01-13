@@ -43,7 +43,7 @@ pub async fn new(cfg: &Config, key: &str) -> anyhow::Result<DatabaseConnection> 
         .sqlx_logging(cfg.get_bool("app.debug").unwrap_or_default());
 
     let conn = Database::connect(opt).await?;
-    let _ = conn.ping().await?;
+    conn.ping().await?;
 
     Ok(conn)
 }

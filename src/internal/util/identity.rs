@@ -44,7 +44,7 @@ impl Identity {
     }
 
     pub fn from_auth_token(token: String) -> Self {
-        if token.len() == 0 {
+        if token.is_empty() {
             return Identity::empty();
         }
         let cipher = match BASE64_STANDARD.decode(token) {

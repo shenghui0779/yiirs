@@ -5,12 +5,12 @@ pub const DATE: &str = "[year]-[month]-[day]";
 pub const TIME: &str = "[hour]:[minute]:[second]";
 pub const DATE_TIME: &str = "[year]-[month]-[day] [hour]:[minute]:[second]";
 
-// 获取当前时间
+/// 获取当前时间
 pub fn now(offset: Option<time::UtcOffset>) -> time::OffsetDateTime {
     time::OffsetDateTime::now_utc().to_offset(offset.unwrap_or(offset!(+8)))
 }
 
-// 根据时间字符串生成时间对象
+/// 根据时间字符串生成时间对象
 pub fn from_str(
     fmt: &str,
     datetime: &str,
@@ -22,7 +22,7 @@ pub fn from_str(
     Ok(v)
 }
 
-// 根据Unix时间戳生成时间对象
+/// 根据Unix时间戳生成时间对象
 pub fn from_timestamp(
     timestamp: i64,
     offset: Option<time::UtcOffset>,
@@ -35,7 +35,7 @@ pub fn from_timestamp(
     Ok(v)
 }
 
-// Unix时间戳格式化
+/// Unix时间戳格式化
 pub fn to_string(
     fmt: &str,
     timestamp: i64,
@@ -55,7 +55,7 @@ pub fn to_string(
     Ok(v)
 }
 
-// 日期转Unix时间戳
+/// 日期转Unix时间戳
 pub fn to_timestamp(
     fmt: &str,
     datetime: &str,

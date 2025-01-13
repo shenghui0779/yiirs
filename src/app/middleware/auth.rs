@@ -13,6 +13,12 @@ impl Auth {
     }
 }
 
+impl Default for Auth {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[async_trait]
 impl Handler for Auth {
     async fn handle(

@@ -31,8 +31,8 @@ time = { version = "0.3", features = [
     "formatting",
     "parsing",
 ] }
-mobc = "0.8"
 r2d2 = "0.8"
+bb8 = "0.9"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["json"] }
 tracing-appender = "0.2"

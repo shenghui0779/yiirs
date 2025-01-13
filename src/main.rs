@@ -34,7 +34,7 @@ async fn init(cfg_file: &str) -> WorkerGuard {
     // 初始化数据库
     db::init(config::global()).await;
     // 初始化Redis
-    cache::init_redis(config::global());
+    cache::init_redis(config::global()).await;
 
     _guard
 }

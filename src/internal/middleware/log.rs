@@ -18,6 +18,12 @@ impl Log {
     }
 }
 
+impl Default for Log {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[async_trait]
 impl Handler for Log {
     async fn handle(
@@ -47,7 +53,7 @@ impl Handler for Log {
             // headers = req_header,
             body = body,
             duration = duration,
-            "Request info"
+            "request info"
         );
     }
 }

@@ -16,6 +16,12 @@ impl Trace {
     }
 }
 
+impl Default for Trace {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[async_trait]
 impl Handler for Trace {
     async fn handle(
@@ -32,7 +38,7 @@ impl Handler for Trace {
         // traceId
         let trace_id = match req.header::<String>(TRACE_ID) {
             Some(v) => {
-                if v.len() != 0 {
+                if !v.is_empty() {
                     v
                 } else {
                     gen_trace_id(req, &hostname)
