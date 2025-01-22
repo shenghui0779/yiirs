@@ -1,0 +1,67 @@
+[package]
+name = "{{ name }}"
+version = "0.0.1"
+edition = "2021"
+description = "Rust api build from yiirs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
+[dependencies]
+futures = "0.3"
+tokio = { version = "1", features = ["full"] }
+clap = { version = "4.5", features = ["derive"] }
+hostname = "^0.4"
+anyhow = "1.0"
+rand = "0.8"
+const-hex = "1.13"
+openssl = { version = "0.10", features = ["vendored"] }
+digest = "0.10"
+md-5 = "0.10"
+sha1 = "0.10"
+sha2 = "0.10"
+hmac = "0.12"
+base64 = "0.22"
+bcrypt = "0.15"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+config = "0.14"
+time = { version = "0.3", features = [
+    "macros",
+    "local-offset",
+    "formatting",
+    "parsing",
+] }
+r2d2 = "0.8"
+bb8 = "0.9"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json"] }
+tracing-appender = "0.2"
+hyper = "1.0"
+http = "1.0"
+http-body = "1.0"
+http-body-util = "0.1"
+salvo = { version = "0.75", features = [
+    "cors",
+    "http1",
+    "http2",
+    "http2-cleartext",
+] }
+multimap = "0.10"
+nanoid = "0.4"
+validator = { version = "0.16", features = ["derive"] }
+sea-orm = { version = "1.1", features = [
+    "sqlx-mysql",
+    "runtime-tokio-rustls",
+    "macros",
+    "debug-print",
+] }
+redis = { version = "0.27", features = [
+    "r2d2",
+    "cluster",
+    "cluster-async",
+    "tokio-comp",
+] }

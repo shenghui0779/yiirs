@@ -1,0 +1,25 @@
+use salvo::{handler, Request};
+use validator::Validate;
+
+use crate::internal::result::{code::Code, ApiResult};
+
+use crate::app::service::{
+    self,
+    greeter::{ReqHello, RespHello},
+};
+
+#[handler]
+pub async fn hello(req: &mut Request) -> ApiResult<RespHello> {
+    let params = req.parse_json::<ReqHello>().await.map_err(|e| {
+        tracing::error!(err = ?e, "req.parse_json");
+        Code::ErrParams(Some("参数解析出错".to_string()))
+    })?;
+    if let Err(e) = params.validate() {
+        return Err(Code::ErrParams(Some(e.to_string())));
+    }
+
+    // let empty = Identity::empty();
+    // let id = req.extensions().get::<Identity>().unwrap_or(&empty);
+
+    service::greeter::hello(params).await
+}

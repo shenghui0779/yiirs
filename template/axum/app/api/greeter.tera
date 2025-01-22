@@ -1,0 +1,20 @@
+use axum::Json;
+use axum_extra::extract::WithRejection;
+use validator::Validate;
+
+use crate::{
+    app::service::{
+        self,
+        greeter::{ReqHello, RespHello},
+    },
+    internal::result::{code::Code, rejection::IRejection, ApiResult},
+};
+
+pub async fn hello(
+    WithRejection(Json(req), _): IRejection<Json<ReqHello>>,
+) -> ApiResult<RespHello> {
+    if let Err(e) = req.validate() {
+        return Err(Code::ErrParams(Some(e.to_string())));
+    }
+    service::greeter::hello(req).await
+}

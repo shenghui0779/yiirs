@@ -1,0 +1,22 @@
+use serde::{Deserialize, Serialize};
+use validator::Validate;
+
+use crate::internal::result::{reply, ApiResult};
+
+#[derive(Debug, Validate, Deserialize, Serialize)]
+pub struct ReqHello {
+    #[validate(length(min = 1, message = "名称必填"))]
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct RespHello {
+    pub message: String,
+}
+
+pub async fn hello(req: ReqHello) -> ApiResult<RespHello> {
+    let resp = RespHello {
+        message: format!("Hello, {}!", req.name),
+    };
+    Ok(reply::OK(Some(resp)))
+}

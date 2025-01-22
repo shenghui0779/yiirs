@@ -1,40 +1,42 @@
-use std::panic;
+mod axum;
+mod cmd;
+mod salvo;
 
-use app::cmd;
+use std::{env, io};
+
 use clap::Parser;
-use internal::core::{cache, config, db, logger};
-use tracing_appender::non_blocking::WorkerGuard;
+use tera::Context;
 
-pub mod app;
-pub mod internal;
+fn main() {
+    // 获取当前目录
+    let dir = env::current_dir().unwrap().canonicalize().unwrap();
 
-#[tokio::main]
-async fn main() {
+    // 解析command
     let cli = cmd::Cli::parse();
-    // _guard 必须在 main 函数中才能使日志生效
-    let _guard = init(&cli.config).await;
-    // catch panic
-    panic::set_hook(Box::new(|info| {
-        tracing::error!(error = %info, "panic occurred");
-    }));
-    // 处理subcommand
+    // 处理command
     if let Some(v) = cli.command {
         match v {
-            cmd::Command::Hello { name } => cmd::hello::exec(name),
-            cmd::Command::Serve => app::serve().await,
+            cmd::Command::New { name, axum } => {
+                let root = dir.join(&name);
+                // 判断目录是否为空
+                let is_empty = match root.read_dir() {
+                    Ok(entries) => entries.count() == 0,
+                    Err(e) => match e.kind() {
+                        io::ErrorKind::NotFound => true,
+                        _ => panic!("{}", e),
+                    },
+                };
+                if !is_empty {
+                    println!("👿 目录({:?})不为空，请确认！", root);
+                    return;
+                }
+                // 创建文件
+                let mut ctx = Context::new();
+                ctx.insert("name", &name);
+                let tera = if axum { axum::new() } else { salvo::new() };
+                cmd::build(root, tera, ctx);
+                println!("🍺 项目创建完成！请阅读README")
+            }
         }
     }
-}
-
-async fn init(cfg_file: &str) -> WorkerGuard {
-    // 初始化配置
-    config::init(cfg_file);
-    // 初始化日志
-    let _guard = logger::init(Some(config::global()));
-    // 初始化数据库
-    db::init(config::global()).await;
-    // 初始化Redis
-    cache::init_redis(config::global()).await;
-
-    _guard
 }
