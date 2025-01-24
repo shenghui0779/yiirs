@@ -9,8 +9,9 @@ use axum::{
 };
 use http_body_util::BodyExt;
 use hyper::HeaderMap;
+use serde_json::Value;
 
-use crate::internal::{result::code::Code, util::xtime};
+use crate::{result::code::Code, util::xtime};
 
 pub async fn handle(request: Request, next: Next) -> Response {
     let enter_time = xtime::now(None);
@@ -79,7 +80,18 @@ async fn drain_body(
             return Err(Code::ErrSystem(None));
         }
     };
-    let req_body_str = std::str::from_utf8(&req_bytes).map(|s| s.to_string()).ok();
+    let req_body_str = std::str::from_utf8(&req_bytes)
+        .map(|s| {
+            // 解析JSON字符串
+            if let Ok(parsed_json) = serde_json::from_str::<Value>(s) {
+                // 将JSON数据格式化为紧凑的字符串
+                if let Ok(compact_json) = serde_json::to_string(&parsed_json) {
+                    return compact_json;
+                }
+            }
+            s.to_string()
+        })
+        .ok();
     // 重置request
     let request = Request::from_parts(req_parts, Body::from(req_bytes));
     // 返回体

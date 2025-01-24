@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use http::header::CONTENT_TYPE;
 use http_body_util::BodyExt;
 use hyper::HeaderMap;
 use salvo::{
@@ -9,8 +8,9 @@ use salvo::{
     writing::Json,
     Depot, FlowCtrl, Handler, Request, Response,
 };
+use serde_json::Value;
 
-use crate::internal::{result::code::Code, util::xtime};
+use crate::{result::code::Code, util::xtime};
 
 const MAX_BODY_LOG_SIZE: u64 = 20 << 10; // 20KB
 
@@ -43,7 +43,7 @@ impl Handler for Log {
         let req_uri = req.uri().to_string();
         let req_header = header_to_string(req.headers());
         // 获取请求体
-        let (req_body, code) = drain_req_body(req).await;
+        let ((req_body, req_size), code) = drain_req_body(req).await;
         if let Some(v) = code {
             resp.render(Json(v.to_reply()));
             ctrl.skip_rest();
@@ -61,6 +61,7 @@ impl Handler for Log {
             uri = req_uri,
             headers = req_header,
             req_body = req_body,
+            req_size = req_size,
             resp_body = resp_body,
             resp_size = resp_size,
             status = status,
@@ -85,35 +86,43 @@ fn header_to_string(h: &HeaderMap) -> String {
     serde_json::to_string(&map).unwrap_or_else(|_| String::from("<none>"))
 }
 
-async fn drain_req_body(req: &mut Request) -> (Option<String>, Option<Code>) {
-    let ok = match req.header::<String>(CONTENT_TYPE) {
-        Some(v) => {
-            v.starts_with("application/json") || v.starts_with("application/x-www-form-urlencoded")
-        }
-        None => false,
-    };
-    if !ok {
-        return (None, None);
-    }
+async fn drain_req_body(req: &mut Request) -> ((Option<String>, u64), Option<Code>) {
     // 取出body
     let body = req.take_body();
     let bytes = match body.collect().await {
         Ok(v) => v.to_bytes(),
         Err(e) => {
             tracing::error!(err = ?e, "[req] body.collect");
-            return (None, Some(Code::ErrSystem(None)));
+            return ((None, 0), Some(Code::ErrSystem(None)));
         }
     };
-    let body_str = std::str::from_utf8(&bytes).map(|s| s.to_string()).ok();
+    // 判断大小并处理JSON
+    let body_size = bytes.len() as u64;
+    let body_str = if body_size > MAX_BODY_LOG_SIZE {
+        Some(String::from("body too large"))
+    } else {
+        std::str::from_utf8(&bytes)
+            .map(|s| {
+                // 解析JSON字符串
+                if let Ok(parsed_json) = serde_json::from_str::<Value>(s) {
+                    // 将JSON数据格式化为紧凑的字符串
+                    if let Ok(compact_json) = serde_json::to_string(&parsed_json) {
+                        return compact_json;
+                    }
+                }
+                s.to_string()
+            })
+            .ok()
+    };
     // 重置body
     req.replace_body(ReqBody::Once(bytes));
-    (body_str, None)
+    ((body_str, body_size), None)
 }
 
 async fn drain_resp_body(resp: &mut Response) -> (Option<String>, u64) {
-    let size = resp.body.size().unwrap_or_default();
-    if size > MAX_BODY_LOG_SIZE {
-        return (Some(String::from("body too large")), size);
+    let body_size = resp.body.size().unwrap_or_default();
+    if body_size > MAX_BODY_LOG_SIZE {
+        return (Some(String::from("body too large")), body_size);
     }
     // 取出body
     let body = resp.take_body();
@@ -121,11 +130,11 @@ async fn drain_resp_body(resp: &mut Response) -> (Option<String>, u64) {
         Ok(v) => v.to_bytes(),
         Err(e) => {
             tracing::error!(err = ?e, "[resp] body.collect");
-            return (None, size);
+            return (None, body_size);
         }
     };
     let body_str = std::str::from_utf8(&bytes).map(|s| s.to_string()).ok();
     // 重置body
     resp.replace_body(ResBody::Once(bytes));
-    (body_str, size)
+    (body_str, body_size)
 }

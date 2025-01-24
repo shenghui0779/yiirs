@@ -1,9 +1,9 @@
 use salvo::{handler, Request};
 use validator::Validate;
 
-use crate::internal::result::{code::Code, ApiResult};
+use internal::result::{code::Code, ApiResult};
 
-use crate::app::service::{
+use crate::service::{
     self,
     greeter::{ReqHello, RespHello},
 };

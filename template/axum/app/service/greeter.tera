@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use crate::internal::result::{reply, ApiResult};
+use internal::result::{reply, ApiResult};
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
 pub struct ReqHello {

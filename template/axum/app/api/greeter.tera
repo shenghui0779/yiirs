@@ -2,12 +2,11 @@ use axum::Json;
 use axum_extra::extract::WithRejection;
 use validator::Validate;
 
-use crate::{
-    app::service::{
-        self,
-        greeter::{ReqHello, RespHello},
-    },
-    internal::result::{code::Code, rejection::IRejection, ApiResult},
+use internal::result::{code::Code, rejection::IRejection, ApiResult};
+
+use crate::service::{
+    self,
+    greeter::{ReqHello, RespHello},
 };
 
 pub async fn hello(

@@ -2,7 +2,7 @@ pub mod route;
 
 use salvo::{cors::Cors, handler, Router};
 
-use crate::internal;
+use internal;
 
 pub fn init() -> Router {
     // cors

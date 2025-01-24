@@ -4,7 +4,7 @@ use nanoid::nanoid;
 use redis::{AsyncCommands, Commands, ExistenceCheck::NX, SetExpiry::PX};
 use tokio::time::sleep;
 
-use crate::internal::core::cache;
+use crate::core::cache;
 
 pub const SCRIPT: &str = r"
 if redis.call('get', KEYS[1]) == ARGV[1] then

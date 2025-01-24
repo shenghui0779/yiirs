@@ -1025,6 +1025,7 @@ name = "yiirs"
 version = "1.4.0"
 dependencies = [
  "clap",
+ "serde",
  "tera",
 ]
 

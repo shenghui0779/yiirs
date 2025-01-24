@@ -3,7 +3,7 @@ use nanoid::nanoid;
 use salvo::{async_trait, Depot, FlowCtrl, Handler, Request, Response};
 use tracing::Instrument;
 
-use crate::internal::{crypto::hash, util::identity::Identity};
+use crate::{crypto::hash, util::identity::Identity};
 
 pub const TRACE_ID: HeaderName = HeaderName::from_static("x-trace-id");
 

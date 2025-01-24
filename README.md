@@ -1,6 +1,6 @@
 # yiirs
 
-基于 [salvo](https://github.com/salvo-rs/salvo) 的 Rust API 快速开发脚手架
+Rust API 开发脚手架
 
 - ORM使用 [sea-orm](https://github.com/SeaQL/sea-orm)
 - Redis使用 [redis-rs](https://github.com/redis-rs/redis-rs)
@@ -14,21 +14,3 @@
 - 包含 AES、Hash、时间格式化 等实用封装
 - 包含 Trace、认证、请求日志、Panic捕获 中间价
 - 简单好用的 API Result 统一输出方式
-
-#### 1. 模块说明
-
-- app => 应用模块
-- internal => 内部模块
-
-#### 2. 本地运行
-
-```sh
-# 数据库
-demo_rs.sql
-
-# 配置文件
-mv config.toml.example config.toml
-
-# 启动服务
-cargo run serve
-```

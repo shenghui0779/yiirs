@@ -1,9 +1,10 @@
-pub mod app;
-pub mod internal;
+pub mod api;
+pub mod cmd;
+pub mod router;
+pub mod service;
 
 use std::panic;
 
-use app::cmd;
 use clap::Parser;
 use internal::core::{config, logger};
 use tracing_appender::non_blocking::WorkerGuard;
@@ -20,8 +21,8 @@ async fn main() {
     // 处理subcommand
     if let Some(v) = cli.command {
         match v {
-            cmd::Command::Hello { name } => cmd::hello::exec(name),
-            cmd::Command::Serve => app::serve().await,
+            cmd::Command::Hello { name } => cmd::hello::run(name),
+            cmd::Command::Serve => cmd::serve::run().await,
         }
     }
 }

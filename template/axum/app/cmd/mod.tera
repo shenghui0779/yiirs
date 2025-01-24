@@ -1,11 +1,12 @@
 pub mod hello;
+pub mod serve;
 
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    #[arg(short, long, value_name = "FILE", default_value = "config.toml")]
+    #[arg(short, long, value_name = "FILE", default_value = "{{ cfgfile }}")]
     pub config: String,
     #[command(subcommand)]
     pub command: Option<Command>,

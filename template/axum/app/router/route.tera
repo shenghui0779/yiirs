@@ -4,7 +4,7 @@ use axum::{
 };
 use tower_http::cors::CorsLayer;
 
-use crate::{app::api::greeter, internal};
+use crate::api::greeter;
 
 pub fn init() -> Router {
     // 开放

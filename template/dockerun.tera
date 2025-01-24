@@ -1,0 +1,12 @@
+#!/bin/bash
+docker rm -f app_{{ app_name }}
+docker rmi -f img_{{ app_name }}
+
+{% if dockerfile == "Dockerfile" -%}
+docker build -t img_{{ app_name }} .
+{% else -%}
+docker build -f {{ dockerfile }} -t img_{{ app_name }} .
+{% endif -%}
+docker image prune -f
+
+docker run -d --name=app_{{ app_name }} --restart=always --privileged -p 10086:8000 -v /data/app_{{ app_name }}:/data img_{{ app_name }}

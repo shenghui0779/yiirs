@@ -1,13 +1,10 @@
-pub mod api;
-pub mod cmd;
-pub mod router;
-pub mod service;
-
 use salvo::prelude::*;
 
-use crate::internal::core::config;
+use internal::core::config;
 
-pub async fn serve() {
+use crate::router;
+
+pub async fn run() {
     let addr = config::global().get_int("app.port").unwrap_or(8000);
     let acceptor = TcpListener::new(format!("0.0.0.0:{}", addr)).bind().await;
     let mut server = Server::new(acceptor);

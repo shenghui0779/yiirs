@@ -20,5 +20,3 @@ target/
 # Log files
 *.log
 *.log.*
-
-.env

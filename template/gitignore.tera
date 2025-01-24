@@ -21,7 +21,3 @@
 # Log files
 *.log
 *.log.*
-
-.env
-*.http
-config.toml
