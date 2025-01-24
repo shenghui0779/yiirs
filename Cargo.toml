@@ -6,6 +6,7 @@ edition = "2021"
 description = "Rust API development scaffolding, support salvo and axum."
 license = "Apache-2.0"
 repository = "https://github.com/shenghui0779/yiirs"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
