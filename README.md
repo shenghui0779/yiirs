@@ -1,5 +1,7 @@
 # yiirs
 
+[![Apache 2.0 license](http://img.shields.io/badge/license-Apache%202.0-brightgreen.svg)](http://opensource.org/licenses/apache2.0)
+
 Rust API 开发脚手架，支持 `salvo` 和 `axum` 框架，并同时支持创建「单应用」和「多应用」
 
 ## 安装
