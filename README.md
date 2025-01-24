@@ -6,6 +6,10 @@ Rust API 开发脚手架，支持 `salvo` 和 `axum` 框架，并同时支持创
 
 ## 安装
 
+```shell
+Cargo install yiirs
+```
+
 ## 特点
 
 - ORM使用 [sea-orm](https://github.com/SeaQL/sea-orm)
