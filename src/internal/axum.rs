@@ -175,6 +175,15 @@ pub fn app() -> Tera {
             "cmd/serve.rs",
             include_str!("../../template/axum/app/cmd/serve.tera"),
         ),
+        // middleware
+        (
+            "middleware/mod.rs",
+            include_str!("../../template/axum/app/middleware/mod.tera"),
+        ),
+        (
+            "middleware/auth.rs",
+            include_str!("../../template/axum/app/middleware/auth.tera"),
+        ),
         // router
         (
             "router/mod.rs",

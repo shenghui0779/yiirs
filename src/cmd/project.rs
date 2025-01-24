@@ -18,9 +18,9 @@ pub fn run(name: String, axum: bool, apps: Vec<String>) {
 
     // 创建项目
     if axum {
-        internal::build_axum_project(&root, name, apps);
+        internal::build_axum_project(&root, &name, &apps);
     } else {
-        internal::build_salvo_project(&root, name, apps);
+        internal::build_salvo_project(&root, &name, &apps);
     }
 
     println!("🍺 项目创建完成！请阅读README")

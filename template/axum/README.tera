@@ -1,6 +1,6 @@
 # yiirs
 
-基于 [axum](https://github.com/tokio-rs/axum) 的 Rust API 快速开发脚手架
+基于 [axum](https://github.com/tokio-rs/axum) 的 Rust API 开发脚手架
 
 - ORM使用 [sea-orm](https://github.com/SeaQL/sea-orm)
 - Redis使用 [redis-rs](https://github.com/redis-rs/redis-rs)
@@ -22,10 +22,18 @@
 
 #### 2. 本地运行
 
-```sh
+```shell
+{%- if mode == "Multi" %}
+# 配置文件
+<app>_config.toml
+
+# 启动服务
+cargo run --bin=<app> serve
+{% else %}
 # 配置文件
 config.toml
 
 # 启动服务
 cargo run serve
+{% endif -%}
 ```

@@ -22,10 +22,18 @@
 
 #### 2. 本地运行
 
-```sh
+```shell
+{%- if mode == "Multi" %}
+# 配置文件
+<app>_config.toml
+
+# 启动服务
+cargo run --bin=<app> serve
+{% else %}
 # 配置文件
 config.toml
 
 # 启动服务
 cargo run serve
+{% endif -%}
 ```

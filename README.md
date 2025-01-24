@@ -1,6 +1,10 @@
 # yiirs
 
-Rust API 开发脚手架
+Rust API 开发脚手架，支持 `salvo` 和 `axum` 框架，并同时支持创建「单应用」和「多应用」
+
+## 安装
+
+## 特点
 
 - ORM使用 [sea-orm](https://github.com/SeaQL/sea-orm)
 - Redis使用 [redis-rs](https://github.com/redis-rs/redis-rs)
@@ -14,3 +18,75 @@ Rust API 开发脚手架
 - 包含 AES、Hash、时间格式化 等实用封装
 - 包含 Trace、认证、请求日志、Panic捕获 中间价
 - 简单好用的 API Result 统一输出方式
+
+## 创建项目
+
+#### 单应用
+
+```shell
+yiirs new --name=demo # salvo
+yiirs new --name=demo --axum # axum
+.
+├── Cargo.toml
+├── Dockerfile
+├── config.toml
+└── src
+    ├── app
+    │   ├── api
+    │   ├── cmd
+    │   ├── middleware
+    │   ├── router
+    │   ├── service
+    │   └── main.rs
+    └── internal
+```
+
+#### 多应用
+
+```shell
+# http
+yiirs new --name=demo --app=foo --app=bar # salvo
+yiirs new --name=demo --app=foo --app=bar --axum # axum
+.
+├── Cargo.toml
+├── foo.dockerfile
+├── bar.dockerfile
+├── foo_config.toml
+├── bar_config.toml
+└── src
+    ├── app
+    │   ├── foo
+    │   │   ├── api
+    │   │   ├── cmd
+    │   │   ├── middleware
+    │   │   ├── router
+    │   │   ├── service
+    │   │   └── main.rs
+    │   ├── bar
+    │   │   ├── ...
+    │   │   └── main.rs
+    └── internal
+```
+
+## 创建应用
+
+```shell
+# 多应用项目适用，需在项目根目录执行（即：Cargo.toml所在目录）
+yiirs app --name=foo --name=bar # 创建salvo应用
+yiirs app --name=foo --name=bar --axum # 创建axum应用
+.
+├── Cargo.toml
+├── foo.dockerfile
+├── bar.dockerfile
+├── foo_config.toml
+├── bar_config.toml
+└── src
+    ├── app
+    │   ├── foo
+    │   │   ├── ...
+    │   │   └── main.rs
+    │   ├── bar
+    │   │   ├── ...
+    │   │   └── main.rs
+    └── internal
+```

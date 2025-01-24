@@ -9,6 +9,7 @@ use std::{
 
 use tera::Context;
 
+#[derive(serde::Serialize)]
 pub enum AppMode {
     Single,
     Multi,
@@ -30,18 +31,18 @@ pub fn is_empty_dir(path: &Path) -> bool {
     }
 }
 
-pub fn build_axum_project(root: &Path, name: String, apps: Vec<String>) {
+pub fn build_axum_project(root: &Path, name: &str, apps: &Vec<String>) {
     let template = (axum::global(), axum::internal());
     let (mode, bins) = build_project(root, name, apps, template);
     build_app(
         root,
-        bins,
+        &bins,
         mode,
         (axum::app(), axum::docker(), axum::other()),
     );
 }
 
-pub fn build_axum_app(root: &Path, apps: Vec<App>, mode: AppMode) {
+pub fn build_axum_app(root: &Path, apps: &Vec<App>, mode: AppMode) {
     build_app(
         root,
         apps,
@@ -50,18 +51,18 @@ pub fn build_axum_app(root: &Path, apps: Vec<App>, mode: AppMode) {
     );
 }
 
-pub fn build_salvo_project(root: &Path, name: String, apps: Vec<String>) {
+pub fn build_salvo_project(root: &Path, name: &str, apps: &Vec<String>) {
     let template = (salvo::global(), salvo::internal());
     let (mode, bins) = build_project(root, name, apps, template);
     build_app(
         root,
-        bins,
+        &bins,
         mode,
         (salvo::app(), salvo::docker(), salvo::other()),
     );
 }
 
-pub fn build_salvo_app(root: &Path, apps: Vec<App>, mode: AppMode) {
+pub fn build_salvo_app(root: &Path, apps: &Vec<App>, mode: AppMode) {
     build_app(
         root,
         apps,
@@ -72,8 +73,8 @@ pub fn build_salvo_app(root: &Path, apps: Vec<App>, mode: AppMode) {
 
 fn build_project(
     root: &Path,
-    name: String,
-    apps: Vec<String>,
+    name: &str,
+    apps: &Vec<String>,
     template: (tera::Tera, tera::Tera),
 ) -> (AppMode, Vec<App>) {
     let src_dir = root.join("src");
@@ -82,7 +83,7 @@ fn build_project(
 
     let mode = if apps.is_empty() {
         bins.push(App {
-            name: name.clone(),
+            name: name.to_string(),
             mainfile: String::from("src/app/main.rs"),
         });
         AppMode::Single
@@ -101,9 +102,10 @@ fn build_project(
     let mut ctx = Context::new();
     ctx.insert("name", &name);
     ctx.insert("apps", &bins);
+    ctx.insert("mode", &mode);
 
     // 创建项目
-    println!("🍺 create project: {}", name);
+    println!("🍺 创建项目: {}", name);
 
     // global
     for filename in tera_global.get_template_names() {
@@ -136,7 +138,7 @@ fn build_project(
 
 fn build_app(
     root: &Path,
-    apps: Vec<App>,
+    apps: &Vec<App>,
     mode: AppMode,
     template: (tera::Tera, tera::Tera, tera::Tera),
 ) {
@@ -145,7 +147,7 @@ fn build_app(
     let src_dir = root.join("src");
 
     // 创建app
-    for app in &apps {
+    for app in apps {
         let mut ctx = Context::new();
         ctx.insert("app_name", &app.name);
 
@@ -170,7 +172,7 @@ fn build_app(
             return;
         }
 
-        println!("🍺 create app: {}", &app.name);
+        println!("🍺 创建App: {}", &app.name);
 
         // app
         for filename in tera_app.get_template_names() {

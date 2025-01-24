@@ -180,6 +180,15 @@ pub fn app() -> Tera {
             "cmd/serve.rs",
             include_str!("../../template/salvo/app/cmd/serve.tera"),
         ),
+        // middleware
+        (
+            "middleware/mod.rs",
+            include_str!("../../template/salvo/app/middleware/mod.tera"),
+        ),
+        (
+            "middleware/auth.rs",
+            include_str!("../../template/salvo/app/middleware/auth.tera"),
+        ),
         // router
         (
             "router/mod.rs",

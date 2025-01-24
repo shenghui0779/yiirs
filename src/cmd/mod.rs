@@ -18,7 +18,7 @@ pub enum Command {
         #[arg(short, long)]
         axum: bool,
         #[arg(short, long)]
-        apps: Vec<String>,
+        app: Vec<String>,
     },
     App {
         #[arg(short, long)]

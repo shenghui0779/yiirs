@@ -1,0 +1,28 @@
+use anyhow::{anyhow, Result};
+use axum::{
+    extract::Request,
+    middleware::Next,
+    response::{IntoResponse, Response},
+};
+
+use internal::{result::code::Code, util::identity::Identity};
+
+pub async fn handle(request: Request, next: Next) -> Response {
+    let identity = request.extensions().get::<Identity>();
+    match identity {
+        None => return Code::ErrAuth(None).into_response(),
+        Some(v) => match auth_check(v).await {
+            Ok(_) => (),
+            Err(e) => return Code::ErrAuth(Some(e.to_string())).into_response(),
+        },
+    }
+    next.run(request).await
+}
+
+pub async fn auth_check(identity: &Identity) -> Result<()> {
+    if identity.id() == 0 {
+        return Err(anyhow!("未授权，请先登录"));
+    }
+    // TODO: ...
+    Ok(())
+}
