@@ -1,6 +1,7 @@
 # yiirs
 
-[![Apache 2.0 license](http://img.shields.io/badge/license-Apache%202.0-brightgreen.svg)](http://opensource.org/licenses/apache2.0)
+[<img alt="crates.io" src="https://img.shields.io/crates/v/yiirs.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/yiirs)
+[<img alt="Apache 2.0 license" src="http://img.shields.io/badge/license-Apache%202.0-brightgreen.svg?style=for-the-badge" height="20">](https://crates.io/crates/yiirs)
 
 Rust API 开发脚手架，支持 `salvo` 和 `axum` 框架，并同时支持创建「单应用」和「多应用」
 
